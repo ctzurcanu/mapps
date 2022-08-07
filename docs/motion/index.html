@@ -6,7 +6,7 @@
     <title>Motion App</title>
 
     <script>
-      console.log = function(){
+      var log = function(){
         let conso = document.getElementById("console")
         conso.innerHTML += JSON.stringify(arguments)+"<br>";
         console.log(...arguments);
@@ -39,25 +39,25 @@ const coordinateSystem = params.get("coord");
                     if (results.every(result => result.state === "granted")) {
                         initSensor();
                     } else {
-                        console.log("Permission to use sensor was denied.");
+                        log("Permission to use sensor was denied.");
                     }
                }).catch(err => {
-                    console.log("Integration with Permissions API is not enabled, still try to start app.");
+                    log("Integration with Permissions API is not enabled, still try to start app.");
                     initSensor();
                });
     } else {
-        console.log("No Permissions API, still try to start app.");
+        log("No Permissions API, still try to start app.");
         initSensor();
     }
 
     function initSensor() {
                 const options = { frequency: 1, coordinateSystem };
-                console.log(JSON.stringify(options));
+                log(JSON.stringify(options));
                 sensor = relative ? new RelativeOrientationSensor(options) : new AbsoluteOrientationSensor(options);
                 sensor.onreading = () => model.quaternion.fromArray(sensor.quaternion).inverse();
                 sensor.onerror = (event) => {
                   if (event.error.name == 'NotReadableError') {
-                    console.log("Sensor is not available.");
+                    log("Sensor is not available.");
                   }
                 }
                 sensor.start();
