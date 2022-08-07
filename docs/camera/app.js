@@ -1,6 +1,8 @@
-let front = true;
+let front = false;
 document.getElementById("flip-button").onclick = () => {
   front = !front;
+  constraints = { video: { facingMode: front ? "user" : "environment" }, audio: false };
+  cameraStart() 
 };
 
 if (!navigator.mediaDevices?.enumerateDevices) {
