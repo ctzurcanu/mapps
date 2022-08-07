@@ -17,53 +17,131 @@
 <body>
 <div id="console"></div>
 
-  <script type="module">
-    import {
-      AbsoluteOrientationSensor,
-      RelativeOrientationSensor
-    } from './poly-motion-sensors.js';
 
-    const params = new URLSearchParams(new URL(window.location.href).search.slice(1));
-    const relative = !!Number(params.get("relative"));
-const coordinateSystem = params.get("coord");
 
-    let container, sensor, camera, scene, renderer, model;
+<div class="p-3 mb-2 bg-secondary" id="demo-div">
+  <a id="start_demo" class="btn btn-lg py-1 btn-success" href="#" role="button">Start demo</a>
+  <p style="margin-top:1rem;">Num. of datapoints: <span class="badge badge-warning" id="num-observed-events">0</span></p>
+  
+  
+  <h4 style="margin-top:0.75rem;">Orientation</h4>
+  <ul>
+    <li>X-axis (β): <span id="Orientation_b">0</span><span>°</span></li>
+    <li>Y-axis (γ): <span id="Orientation_g">0</span><span>°</span></li>
+    <li>Z-axis (α): <span id="Orientation_a">0</span><span>°</span></li>
+  </ul>
+  
+  <h4>Accelerometer</h4>
+  <ul>
+    <li>X-axis: <span id="Accelerometer_x">0</span><span> m/s<sup>2</sup></span></li>
+    <li>Y-axis: <span id="Accelerometer_y">0</span><span> m/s<sup>2</sup></span></li>
+    <li>Z-axis: <span id="Accelerometer_z">0</span><span> m/s<sup>2</sup></span></li>
+    <li>Data Interval: <span id="Accelerometer_i">0</span><span> ms</span></li>
+  </ul>
+  
+  <h4>Accelerometer including gravity</h4>
+  
+  <ul>
+    <li>X-axis: <span id="Accelerometer_gx">0</span><span> m/s<sup>2</sup></span></li>
+    <li>Y-axis: <span id="Accelerometer_gy">0</span><span> m/s<sup>2</sup></span></li>
+    <li>Z-axis: <span id="Accelerometer_gz">0</span><span> m/s<sup>2</sup></span></li>
+  </ul>
+  
+  <h4>Gyroscope</h4>
+  <ul>
+    <li>X-axis: <span id="Gyroscope_x">0</span><span>°/s</span></li>
+    <li>Y-axis: <span id="Gyroscope_y">0</span><span>°/s</span></li>
+    <li>Z-axis: <span id="Gyroscope_z">0</span><span>°/s</span></li>
+  </ul>
+  
+  </div>
 
-    //initScene();
-    if (navigator.permissions) {
-        // https://w3c.github.io/orientation-sensor/#model
-        Promise.all([navigator.permissions.query({ name: "accelerometer" }),
-                     navigator.permissions.query({ name: "magnetometer" }),
-                     navigator.permissions.query({ name: "gyroscope" })])
-               .then(results => {
-                    if (results.every(result => result.state === "granted")) {
-                        initSensor();
-                    } else {
-                        log("Permission to use sensor was denied.");
-                    }
-               }).catch(err => {
-                    log("Integration with Permissions API is not enabled, still try to start app.");
-                    initSensor();
-               });
-    } else {
-        log("No Permissions API, still try to start app.");
-        initSensor();
+  <script>
+
+    function handleOrientation(event) {
+      updateFieldIfNotNull('Orientation_a', event.alpha);
+      updateFieldIfNotNull('Orientation_b', event.beta);
+      updateFieldIfNotNull('Orientation_g', event.gamma);
+      incrementEventCount();
     }
-
-    function initSensor() {
-                const options = { frequency: 1, coordinateSystem };
-                log(JSON.stringify(options));
-                sensor = relative ? new RelativeOrientationSensor(options) : new AbsoluteOrientationSensor(options);
-                sensor.onreading = () => model.quaternion.fromArray(sensor.quaternion).inverse();
-                sensor.onerror = (event) => {
-                  if (event.error.name == 'NotReadableError') {
-                    log("Sensor is not available.");
-                  }
-                }
-                sensor.start();
-            }
-
+    
+    function incrementEventCount(){
+      let counterElement = document.getElementById("num-observed-events")
+      let eventCount = parseInt(counterElement.innerHTML)
+      counterElement.innerHTML = eventCount + 1;
+    }
+    
+    function updateFieldIfNotNull(fieldName, value, precision=10){
+      if (value != null)
+        document.getElementById(fieldName).innerHTML = value.toFixed(precision);
+    }
+    
+    function handleMotion(event) {
+      updateFieldIfNotNull('Accelerometer_gx', event.accelerationIncludingGravity.x);
+      updateFieldIfNotNull('Accelerometer_gy', event.accelerationIncludingGravity.y);
+      updateFieldIfNotNull('Accelerometer_gz', event.accelerationIncludingGravity.z);
+    
+      updateFieldIfNotNull('Accelerometer_x', event.acceleration.x);
+      updateFieldIfNotNull('Accelerometer_y', event.acceleration.y);
+      updateFieldIfNotNull('Accelerometer_z', event.acceleration.z);
+    
+      updateFieldIfNotNull('Accelerometer_i', event.interval, 2);
+    
+      updateFieldIfNotNull('Gyroscope_z', event.rotationRate.alpha);
+      updateFieldIfNotNull('Gyroscope_x', event.rotationRate.beta);
+      updateFieldIfNotNull('Gyroscope_y', event.rotationRate.gamma);
+      incrementEventCount();
+    }
+    
+    let is_running = false;
+    let demo_button = document.getElementById("start_demo");
+    demo_button.onclick = function(e) {
+      e.preventDefault();
+      
+      // Request permission for iOS 13+ devices
+      if (
+        DeviceMotionEvent &&
+        typeof DeviceMotionEvent.requestPermission === "function"
+      ) {
+        DeviceMotionEvent.requestPermission();
+      }
+      
+      if (is_running){
+        window.removeEventListener("devicemotion", handleMotion);
+        window.removeEventListener("deviceorientation", handleOrientation);
+        demo_button.innerHTML = "Start demo";
+        demo_button.classList.add('btn-success');
+        demo_button.classList.remove('btn-danger');
+        is_running = false;
+      }else{
+        window.addEventListener("devicemotion", handleMotion);
+        window.addEventListener("deviceorientation", handleOrientation);
+        document.getElementById("start_demo").innerHTML = "Stop demo";
+        demo_button.classList.remove('btn-success');
+        demo_button.classList.add('btn-danger');
+        is_running = true;
+      }
+    };
+    
+    /*
+    Light and proximity are not supported anymore by mainstream browsers.
+    window.addEventListener('devicelight', function(e) {
+       document.getElementById("DeviceLight").innerHTML="AmbientLight current Value: "+e.value+" Max: "+e.max+" Min: "+e.min;
+    });
+    
+    window.addEventListener('lightlevel', function(e) {
+       document.getElementById("Lightlevel").innerHTML="Light level: "+e.value;
+    });
+    
+    window.addEventListener('deviceproximity', function(e) {
+       document.getElementById("DeviceProximity").innerHTML="DeviceProximity current Value: "+e.value+" Max: "+e.max+" Min: "+e.min;
+    });
+    
+    window.addEventListener('userproximity', function(event) {
+       document.getElementById("UserProximity").innerHTML="UserProximity: "+event.near;
+    });
+    */
+    
     </script>
-
     </body>
 </html>
