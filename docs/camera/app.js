@@ -1,4 +1,4 @@
-let front = false;
+let front = true;
 document.getElementById("flip-button").onclick = () => {
   front = !front;
 };
