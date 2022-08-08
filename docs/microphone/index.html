@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>microphone app</title>
+    <link rel="stylesheet" type="text/css" href="vmsg.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="app.js" type="module"></script>
+   
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+  
+    <div id="controls">
+      <button id="recordButton">Record</button>
+    </div>
+    <div id="formats"></div>
+    <script type="text/javascript">
+      var AudioContext = window.AudioContext || window.webkitAudioContext;
+      var audioCtx = new AudioContext();
+      document.getElementById("formats").innerHTML="Format: 1 channel mp3 @ "+audioCtx.sampleRate+" Hz"
+      console.log(audioCtx.sampleRate);
+    </script>
+  </body>
+</html>
