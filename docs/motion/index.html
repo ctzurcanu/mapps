@@ -4,7 +4,80 @@
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Motion App</title>
-
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed&display=swap" rel="stylesheet">
+    <style>
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --background-color: #121212; 
+          --text-color: #999;
+          --color-canvas-subtle: #2d2d2d;
+        }
+      }
+      
+      @media (prefers-color-scheme: light) {
+        :root {
+          --background-color: #ffffff;
+          --text-color: #555;
+          --color-canvas-subtle: #cfcfcf;
+        }
+      }
+      
+      :root {
+        --round-size: 20px;
+      }
+      
+      html, body {
+        font-family: 'Roboto Condensed', Arial, Helvetica, sans-serif;
+        font-size: 18px;
+        background-color: var(--background-color);
+        color: var(--text-color);
+        padding: 5px;
+      }
+      
+      a {
+        text-decoration: none;
+        width: 100%;
+        color: var(--text-color);
+        display: block; 
+      
+      }
+      
+      a::after {
+        content: ' 〉';
+        text-align: right;
+        float: right;
+      }
+      
+          .Box {
+          background-color: var(--color-canvas-default);
+          border-color: var(--color-border-default);
+          border-style: solid;
+          border-width: 0.5px;
+          border-radius: var(--round-size);
+      }
+          
+          .Box-header {
+          padding: 16px;
+          margin: -1px -1px 0;
+          background-color: var(--color-canvas-subtle);
+          border-color: var(--color-border-default);
+          border-style: solid;
+          border-width: 0.5px;
+          border-top-left-radius: var(--round-size);
+          border-top-right-radius: var(--round-size);
+          font-size: 24px;
+      }
+      
+      .Box-row {
+          padding: 16px;
+          margin-top: -1px;
+          list-style-type: none;
+          border-top-color: var(--color-border-muted);
+          border-top-style: solid;
+          border-top-width: 0.5px;
+      }
+      
+        </style>
     <script>
       var log = function(){
         let conso = document.getElementById("console")
@@ -15,46 +88,61 @@
 
 </head>
 <body>
-<div id="console"></div>
 
 
 
-<div class="p-3 mb-2 bg-secondary" id="demo-div">
-  <a id="start_demo" class="btn btn-lg py-1 btn-success" href="#" role="button">Start demo</a>
-  <p style="margin-top:1rem;">Num. of datapoints: <span class="badge badge-warning" id="num-observed-events">0</span></p>
+  <div class="Box ">
+    <div class="Box-header">
+      Motion App
+    </div>
   
-  
-  <h4 style="margin-top:0.75rem;">Orientation</h4>
-  <ul>
-    <li>X-axis (β): <span id="Orientation_b">0</span><span>°</span></li>
-    <li>Y-axis (γ): <span id="Orientation_g">0</span><span>°</span></li>
-    <li>Z-axis (α): <span id="Orientation_a">0</span><span>°</span></li>
-  </ul>
-  
-  <h4>Accelerometer</h4>
+      <div role="row" class="Box-row">
+        <a id="start_demo" href="#" role="button">Start Motion Capture</a>
+      </div>
+      <div role="row" class="Box-row">
+        <p style="margin-top:1rem;">Num. of datapoints: <span class="badge badge-warning" id="num-observed-events">0</span></p>
+        <div id="console"></div>
+      </div>
+
+      <div role="row" class="Box-row">
+        
+        <h4 style="margin-top:0.75rem;">Orientation</h4>
+        <ul>
+          <li>X-axis (β): <span id="Orientation_b">0</span><span>°</span></li>
+          <li>Y-axis (γ): <span id="Orientation_g">0</span><span>°</span></li>
+          <li>Z-axis (α): <span id="Orientation_a">0</span><span>°</span></li>
+        </ul>
+      </div>
+
+      <div role="row" class="Box-row">
+        <h4>Accelerometer</h4>
   <ul>
     <li>X-axis: <span id="Accelerometer_x">0</span><span> m/s<sup>2</sup></span></li>
     <li>Y-axis: <span id="Accelerometer_y">0</span><span> m/s<sup>2</sup></span></li>
     <li>Z-axis: <span id="Accelerometer_z">0</span><span> m/s<sup>2</sup></span></li>
     <li>Data Interval: <span id="Accelerometer_i">0</span><span> ms</span></li>
   </ul>
+      </div>
+
+      <div role="row" class="Box-row">
+        <h4>Accelerometer including gravity</h4>
   
-  <h4>Accelerometer including gravity</h4>
+        <ul>
+          <li>X-axis: <span id="Accelerometer_gx">0</span><span> m/s<sup>2</sup></span></li>
+          <li>Y-axis: <span id="Accelerometer_gy">0</span><span> m/s<sup>2</sup></span></li>
+          <li>Z-axis: <span id="Accelerometer_gz">0</span><span> m/s<sup>2</sup></span></li>
+        </ul>
+      </div>
+      <div role="row" class="Box-row">
+        <h4>Gyroscope</h4>
+        <ul>
+          <li>X-axis: <span id="Gyroscope_x">0</span><span>°/s</span></li>
+          <li>Y-axis: <span id="Gyroscope_y">0</span><span>°/s</span></li>
+          <li>Z-axis: <span id="Gyroscope_z">0</span><span>°/s</span></li>
+        </ul>
+      </div>
   
-  <ul>
-    <li>X-axis: <span id="Accelerometer_gx">0</span><span> m/s<sup>2</sup></span></li>
-    <li>Y-axis: <span id="Accelerometer_gy">0</span><span> m/s<sup>2</sup></span></li>
-    <li>Z-axis: <span id="Accelerometer_gz">0</span><span> m/s<sup>2</sup></span></li>
-  </ul>
-  
-  <h4>Gyroscope</h4>
-  <ul>
-    <li>X-axis: <span id="Gyroscope_x">0</span><span>°/s</span></li>
-    <li>Y-axis: <span id="Gyroscope_y">0</span><span>°/s</span></li>
-    <li>Z-axis: <span id="Gyroscope_z">0</span><span>°/s</span></li>
-  </ul>
-  
-  </div>
+    </div>
 
   <script>
 
@@ -116,7 +204,7 @@
       }else{
         window.addEventListener("devicemotion", handleMotion);
         window.addEventListener("deviceorientation", handleOrientation);
-        document.getElementById("start_demo").innerHTML = "Stop demo";
+        document.getElementById("start_demo").innerHTML = "Stop Motion Capture";
         demo_button.classList.remove('btn-success');
         demo_button.classList.add('btn-danger');
         is_running = true;

@@ -21,6 +21,10 @@
   }
 }
 
+:root {
+  --round-size: 20px;
+}
+
 html, body {
   font-family: 'Roboto Condensed', Arial, Helvetica, sans-serif;
   font-size: 18px;
@@ -32,7 +36,6 @@ html, body {
 a {
   text-decoration: none;
   width: 100%;
-  height: 100%;
   color: var(--text-color);
   display: block; 
 
@@ -45,15 +48,13 @@ a::after {
 }
 
     .Box {
-
     background-color: var(--color-canvas-default);
     border-color: var(--color-border-default);
     border-style: solid;
     border-width: 0.5px;
-    border-radius: 10px;
+    border-radius: var(--round-size);
 }
     
-
     .Box-header {
     padding: 16px;
     margin: -1px -1px 0;
@@ -61,8 +62,8 @@ a::after {
     border-color: var(--color-border-default);
     border-style: solid;
     border-width: 0.5px;
-    border-top-left-radius: 10px;
-    border-top-right-radius: 10px;
+    border-top-left-radius: var(--round-size);
+    border-top-right-radius: var(--round-size);
     font-size: 24px;
 }
 
@@ -83,8 +84,6 @@ a::after {
     Mobile Apps
   </div>
 
-
-
     <div role="row" class="Box-row">
       <a href="camera/index.html">camera</a>
     </div>
@@ -98,8 +97,9 @@ a::after {
       <a href="calendar/index.html">calendar</a>
     </div>
     <div role="row" class="Box-row">
-      <a href="geo/index.html">geo</a>
+      <a href="geo/index.html?key=">geo</a>
     </div>
+  
 
   </div>
 

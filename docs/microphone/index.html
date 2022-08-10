@@ -2,19 +2,114 @@
 <html>
   <head>
     <meta charset="UTF-8">
-    <title>microphone app</title>
+    <title>Microphone App</title>
     <link rel="stylesheet" type="text/css" href="vmsg.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="app.js" type="module"></script>
    
     <link rel="stylesheet" href="style.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed&display=swap" rel="stylesheet">
+    <style>
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --background-color: #121212; 
+          --text-color: #999;
+          --color-canvas-subtle: #2d2d2d;
+        }
+      }
+      
+      @media (prefers-color-scheme: light) {
+        :root {
+          --background-color: #ffffff;
+          --text-color: #555;
+          --color-canvas-subtle: #cfcfcf;
+        }
+      }
+      
+      :root {
+        --round-size: 20px;
+      }
+      
+      html, body {
+        font-family: 'Roboto Condensed', Arial, Helvetica, sans-serif;
+        font-size: 18px;
+        background-color: var(--background-color);
+        color: var(--text-color);
+        padding: 5px;
+      }
+      
+      a {
+        text-decoration: none;
+        width: 100%;
+        color: var(--text-color);
+        display: block; 
+      
+      }
+      
+      a::after {
+        content: ' 〉';
+        text-align: right;
+        float: right;
+      }
+      
+          .Box {
+          background-color: var(--color-canvas-default);
+          border-color: var(--color-border-default);
+          border-style: solid;
+          border-width: 0.5px;
+          border-radius: var(--round-size);
+      }
+          
+          .Box-header {
+          padding: 16px;
+          margin: -1px -1px 0;
+          background-color: var(--color-canvas-subtle);
+          border-color: var(--color-border-default);
+          border-style: solid;
+          border-width: 0.5px;
+          border-top-left-radius: var(--round-size);
+          border-top-right-radius: var(--round-size);
+          font-size: 24px;
+      }
+      
+      .Box-row {
+          padding: 16px;
+          margin-top: -1px;
+          list-style-type: none;
+          border-top-color: var(--color-border-muted);
+          border-top-style: solid;
+          border-top-width: 0.5px;
+      }
+      
+        </style>
+    <script>
+      var log = function(){
+        let conso = document.getElementById("console")
+        conso.innerHTML += JSON.stringify(arguments)+"<br>";
+        console.log(...arguments);
+      }
+    </script>
   </head>
   <body>
   
-    <div id="controls">
-      <button id="recordButton">Record</button>
+    <div class="Box ">
+      <div class="Box-header">
+        Microphone Recording App
+      </div>
+    
+        <div role="row" class="Box-row">
+          <div id="controls">
+            <button id="recordButton">Record</button>
+          </div>
+        </div>
+
+        <div role="row" class="Box-row">
+          <div id="formats"></div>
+        </div>
+
     </div>
-    <div id="formats"></div>
+    
+    
     <script type="text/javascript">
       var AudioContext = window.AudioContext || window.webkitAudioContext;
       var audioCtx = new AudioContext();
