@@ -97,11 +97,51 @@ a::after {
       <a href="calendar/index.html">calendar</a>
     </div>
     <div role="row" class="Box-row">
-      <a href="geo/index.html?key=">geo</a>
+      <a href="javascript:goToGeo()">geo</a>
     </div>
   
 
   </div>
+  <script>
+    async function goToGeo() {
+      if (!window.plugems) {
+        const PLUGEM_INJ_MSG = {
+          request: 'plugem_adapter_request',
+          response: 'plugem_adapter_response',
+          subscription: 'plugem_adapter_subscription',
+          event: 'plugem_adapter_event',
+        }
+        let requestID = 0;
+        function _request(topic, data, id) {
+            return new Promise((resolve, reject) => {
+                window.addEventListener('message', (event) => {
+                    if (!event || !event.data) {
+                        return;
+                    }
+                    console.log('_request', event.data);
+                    const {type, topic: _topic, id: _id, data} = event.data;
+                    if (!type || !_topic) return;
+                    if (type !== PLUGEM_INJ_MSG.response) return;
+                    if (_topic !== topic) return;
+                    if (_id !== id) return;
+                    resolve(data);
+                })
+                postMessage({type: PLUGEM_INJ_MSG.request, topic, data, id});
+            });
+        }
+        window.plugems = {
+          request: (topic, args) => {
+            const id = requestID;
+            requestID += 1;
+            return _request(topic, args, id)
+          },
+        }
+      }
+      const googleApiKey = await window.plugems.request("storage_get", ["GOOGLE_API_KEY"]);
+      document.location.href = "geo/index.html?key=" + googleApiKey;
+      console.log('document.location.href', document.location.href);
+    }
+  </script>
 
 </body>
 </html>
