@@ -1,0 +1,25 @@
+<html lang=”en”>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Name of your awesome camera app -->
+    <title>Torch App</title>
+</head>
+<body>
+    <!-- Torch -->
+    <main id="torchapp">
+        <button id="torch-toggle">TORCH</button>
+    </main>
+    <!-- Reference to your JavaScript file -->
+    <script>
+        window.torchToggle = false;
+        
+        document.getElementById("torch-toggle").addEventListener("click", () => {
+            const state = !window.torchToggle;
+            window.plugems.request("utils_torch-toggle", [state]);
+            window.torchToggle = state;
+        });
+    </script>
+</body>
+</html>
