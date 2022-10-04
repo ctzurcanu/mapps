@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>AssemblyScript IDE</title>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js" integrity="sha512-8RnEqURPUc5aqFEN04aQEiPlSAdE0jlFS/9iGgUyNtwFnSKCXhmB6ZTNl7LnDtDWKabJIASzXrzD0K+LYexU9g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+        <script src="https://cdn.jsdelivr.net/gh/AssemblyScript/wabt.js@1.0.29/index.js"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.css" integrity="sha512-uf06llspW44/LZpHzHT6qBOIVODjWtv4MxCricRxkzvopAlSWnTf6hpZTFxuuZcuNE9CBQhqE0Seu1CoRk84nQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/darcula.min.css" integrity="sha512-kqCOYFDdyQF4JM8RddA6rMBi9oaLdR0aEACdB95Xl1EgaBhaXMIe8T4uxmPitfq4qRmHqo+nBU2d1l+M4zUx1g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed&display=swap" rel="stylesheet">
+
+    
+    <script async src="https://cdn.jsdelivr.net/npm/es-module-shims@1.3.2/dist/es-module-shims.js"></script>
+<script type="importmap">
+{
+  "imports": {
+    "binaryen": "https://cdn.jsdelivr.net/npm/binaryen@110.0.0-nightly.20220924/index.js",
+    "long": "https://cdn.jsdelivr.net/npm/long@5.2.0/index.js",
+    "assemblyscript": "https://cdn.jsdelivr.net/npm/assemblyscript@0.21.4/dist/assemblyscript.js",
+    "assemblyscript/asc": "https://cdn.jsdelivr.net/npm/assemblyscript@0.21.4/dist/asc.js", 
+    "wabt": "https://cdn.jsdelivr.net/gh/AssemblyScript/wabt.js@1.0.29/index.js"
+  }
+}
+</script>
+<script src="https://unpkg.com/split.js/dist/split.min.js"></script>
+<style>
+html, body, .split, #out {
+  width: 100%;
+  height: 100%;
+  border-color: transparent; 
+  background-color: #2b2b2b;
+  color: #a9b7c6;
+  margin: 0px;
+  font-family: "Roboto Condensed", sans-serif;
+}
+
+body, button, div, html, input, p, select, textarea {
+  font-family: "Roboto Condensed", sans-serif;
+}
+
+input, select, textarea {
+    border-radius: 5px;
+    border: none;
+    background: rgb(80 80 80/50%);
+    outline: none;
+    color: #a9b7c6;
+}
+
+a, button {
+    cursor: pointer;
+}
+button {
+    border-radius: 5px;
+    background: #1a1a1a;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    border: 0px double #505050;
+    color: #a9b7c6;
+}
+
+
+.CodeMirror {
+  height: 100%;
+}
+
+textarea {
+  -moz-appearance:none;
+  outline:0px none transparent;
+}
+
+  .split {
+    display: flex;
+    flex-direction: row;
+}
+
+.gutter {
+    background-color: #444;
+    background-repeat: no-repeat;
+    background-position: 50%;
+}
+
+.gutter.gutter-horizontal {
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAeCAYAAADkftS9AAAAIklEQVQoU2M4c+bMfxAGAgYYmwGrIIiDjrELjpo5aiZeMwF+yNnOs5KSvgAAAABJRU5ErkJggg==');
+    cursor: col-resize;
+}
+
+.gutter.gutter-vertical {
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAFAQMAAABo7865AAAABlBMVEVHcEzMzMzyAv2sAAAAAXRSTlMAQObYZgAAABBJREFUeF5jOAMEEAIEEFwAn3kMwcB6I2AAAAAASUVORK5CYII=');
+    cursor: row-resize;
+}
+
+</style>
+</head>
+    <body>
+
+        <div id="split-01"  class="split content">
+          <div class="split">
+            <div id="split-0">
+              <textarea id="code">export function add(a: i32, b: i32): i32 {
+                return a + b;
+              }</textarea>
+            </div>
+            <div id="split-1">
+              <textarea id="out"></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="split content" id="split-02">
+          <button id="compile" >&gt;</button>
+          <div id="play"></div>
+        </div>
+
+
+    <script>
+      Split(['#split-01', '#split-02'], {
+    direction: 'vertical',
+    sizes: [95,5],
+    snapOffset: 10,
+    cursor: 'row-resize',
+})
+      Split(["#split-0", "#split-1"],{
+        snapOffset: 10,
+      });
+
+      const module = {};
+      
+    </script>
+
+<script type="module">
+  import asc from "assemblyscript/asc";
+  //import "wabt";
+  //import {wabt} from 'https://cdn.jsdelivr.net/gh/AssemblyScript/wabt.js@1.0.29/index.js';
+  //console.log(WabtModule)
+  var wabti = WabtModule();
+  var wabt = null;
+  wabti.then((x)=>{wabt = x;})
+
+  function doit(act){
+    
+    let els = document.querySelectorAll("."+act+"_")
+    let outp = document.querySelector("."+act+"_o")
+    let ins =[]
+    for(let i = 0 ; i< els.length;i++ ){
+      ins.push(els[i].value)
+    }
+    console.log(act,wout,els, ins)
+    let ans = wout[act](...ins)
+    outp.value = ans
+    console.log(wout["memory"])
+  }
+  module.doit = doit
+  
+
+  function compileWasm(code1) {
+    const module = wabt.parseWat('unnamed.wat', code1);
+    module.resolveNames();
+    module.validate();
+    const binary = module.toBinary({log: true, write_debug_names:true});
+    const {WebAssembly} = window;
+    const wasm = new WebAssembly.Module(binary.buffer);
+    const instance = new WebAssembly.Instance(wasm, {});
+    console.log(binary,binary.buffer.length);
+    return instance.exports;
+  }
+
+  var code = ""
+  var wout ={}
+  var btn = document.getElementById("compile")
+  btn.addEventListener("click",()=>{
+    let play = document.getElementById("play")
+    wout = compileWasm(editor2.doc.getValue())
+    console.log(wout);
+    let hout="";
+    for (let item in wout){
+      if (item !="memory") {
+        let inps = Array(wout[item].length).fill("<input onchange=\"module.doit('"+item+"')\" class=\""+item+"_\"></input>")
+        hout = hout + " <button onclick=\"module.doit('"+item+"')\">"+ item+"</button>("+ inps.join(", ")+ (") = <input class=\""+item+"_o\"></input>")+"<br>";
+      }
+      
+        
+    }
+    play.innerHTML = hout;
+  })
+
+  
+  var value=""
+  var myTheme = ""
+
+//   var myTheme = EditorView.theme({
+//   "&": {
+//     color: "white",
+//     backgroundColor: "#034"
+//   },
+//   ".cm-content": {
+//     caretColor: "#0e9"
+//   },
+//   "&.cm-focused .cm-cursor": {
+//     borderLeftColor: "#0e9"
+//   },
+//   "&.cm-focused .cm-selectionBackground, ::selection": {
+//     backgroundColor: "#074"
+//   },
+//   ".cm-gutters": {
+//     backgroundColor: "#045",
+//     color: "#ddd",
+//     border: "none"
+//   }
+// }, {dark: true})
+  
+      //var asc = null;
+      //var update = null;
+      var stdout
+      var error
+
+      var editor2 = CodeMirror.fromTextArea(document.getElementById("out"), {
+                lineNumbers: true, 
+                matchBrackets: true,
+                lineWrapping: true,
+                //theme: myTheme,
+                // onchange: function(instance, changeObj) {
+                //     //  loose focus here    
+                //     console.log("ff",instance.getValue())             
+                // }  
+        });
+
+      editor2.setOption("theme", "darcula");
+
+      var editor = CodeMirror.fromTextArea(document.getElementById("code"), {
+                lineNumbers: true, 
+                matchBrackets: true,
+                lineWrapping: true,
+                //theme: myTheme,
+                // onchange: function(instance, changeObj) {
+                //     //  loose focus here    
+                //     console.log("ff",instance.getValue())             
+                // }  
+        });
+
+        editor.setOption("theme", "darcula");
+        editor.on('change', (editor) => {
+  const text = editor.doc.getValue();
+  let out = document.getElementById("out")
+  //let addWASM = asc.compileString(addSource, { optimizeLevel: 3 })
+  value = text;
+  update()
+  //out.innerHTML = text;
+  console.log(text);
+  
+});
+  
+  
+  async function update(){
+    const files = {
+      "index.ts": value
+      //"export function add(a: i32, b: i32): i32 {\n            return a + b;\n          }"
+
+    };
+    
+    let out1 = await asc.main([
+      "index.ts", "--textFile", "--optimize"
+    ], {
+      readFile(name, baseDir) {
+        if (Object.prototype.hasOwnProperty.call(files, name)) return files[name];
+        return null;
+      },
+      writeFile(name, data, baseDir) {
+      },
+      listFiles(dirname, baseDir) {
+        return [];
+      }
+    });
+
+    error = out1.error
+    stdout = out1.stdout;
+
+    //let addWASM = asc.compileString(addSource, { optimizeLevel: 3 })
+    //out.innerHTML = stdout.toString();
+    code = stdout.toString();
+    editor2.doc.setValue(code)
+    compileWasm(code)
+    console.log(error, code);
+  }
+  update()
+  // export { update }
+  </script>
+  </body>
+</html>
