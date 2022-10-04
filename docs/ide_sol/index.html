@@ -4,10 +4,7 @@
         <title>Solidity IDE</title>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js" integrity="sha512-8RnEqURPUc5aqFEN04aQEiPlSAdE0jlFS/9iGgUyNtwFnSKCXhmB6ZTNl7LnDtDWKabJIASzXrzD0K+LYexU9g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
-        <script
-  type="text/javascript"
-  src="https://binaries.soliditylang.org/bin/soljson-latest.js"
-></script>
+        
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.css" integrity="sha512-uf06llspW44/LZpHzHT6qBOIVODjWtv4MxCricRxkzvopAlSWnTf6hpZTFxuuZcuNE9CBQhqE0Seu1CoRk84nQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/darcula.min.css" integrity="sha512-kqCOYFDdyQF4JM8RddA6rMBi9oaLdR0aEACdB95Xl1EgaBhaXMIe8T4uxmPitfq4qRmHqo+nBU2d1l+M4zUx1g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
@@ -21,7 +18,7 @@
 
 <script src="https://unpkg.com/split.js/dist/split.min.js"></script>
 <style>
-html, body, .split, #out {
+html, body, .split, #out1, #out2 {
   width: 100%;
   height: 100%;
   border-color: transparent; 
@@ -124,7 +121,10 @@ textarea {
                 }</textarea>
             </div>
             <div id="split-1">
-              <textarea id="out"></textarea>
+              <textarea id="out1"></textarea>
+            </div>
+            <div id="split-2">
+              <textarea id="out2"></textarea>
             </div>
           </div>
         </div>
@@ -141,7 +141,7 @@ textarea {
     snapOffset: 10,
     cursor: 'row-resize',
 })
-      Split(["#split-0", "#split-1"],{
+      Split(["#split-0", "#split-1", "#split-2"],{
         snapOffset: 10,
       });
 
@@ -150,14 +150,14 @@ textarea {
     </script>
 
 <script type="module">
-  import * as wrapper from 'solc/wrapper';
-const solc = wrapper(window.Module);
+  //import * as wrapper from 'solc/wrapper';
+  //const solc = wrapper(window.Module);
   //import "wabt";
   //import {wabt} from 'https://cdn.jsdelivr.net/gh/AssemblyScript/wabt.js@1.0.29/index.js';
   //console.log(WabtModule)
-  var wabti = WabtModule();
+  //var wabti = WabtModule();
   var wabt = null;
-  wabti.then((x)=>{wabt = x;})
+  //wabti.then((x)=>{wabt = x;})
 
   function doit(act){
     
@@ -208,35 +208,24 @@ const solc = wrapper(window.Module);
 
   
   var value=""
-  var myTheme = ""
 
-//   var myTheme = EditorView.theme({
-//   "&": {
-//     color: "white",
-//     backgroundColor: "#034"
-//   },
-//   ".cm-content": {
-//     caretColor: "#0e9"
-//   },
-//   "&.cm-focused .cm-cursor": {
-//     borderLeftColor: "#0e9"
-//   },
-//   "&.cm-focused .cm-selectionBackground, ::selection": {
-//     backgroundColor: "#074"
-//   },
-//   ".cm-gutters": {
-//     backgroundColor: "#045",
-//     color: "#ddd",
-//     border: "none"
-//   }
-// }, {dark: true})
-  
-      //var asc = null;
-      //var update = null;
       var stdout
       var error
 
-      var editor2 = CodeMirror.fromTextArea(document.getElementById("out"), {
+      var editor1 = CodeMirror.fromTextArea(document.getElementById("out1"), {
+                lineNumbers: true, 
+                matchBrackets: true,
+                lineWrapping: true,
+                //theme: myTheme,
+                // onchange: function(instance, changeObj) {
+                //     //  loose focus here    
+                //     console.log("ff",instance.getValue())             
+                // }  
+        });
+
+      editor1.setOption("theme", "darcula");
+
+      var editor2 = CodeMirror.fromTextArea(document.getElementById("out2"), {
                 lineNumbers: true, 
                 matchBrackets: true,
                 lineWrapping: true,
@@ -263,7 +252,7 @@ const solc = wrapper(window.Module);
         editor.setOption("theme", "darcula");
         editor.on('change', (editor) => {
   const text = editor.doc.getValue();
-  let out = document.getElementById("out")
+  let out = document.getElementById("out1")
   //let addWASM = asc.compileString(addSource, { optimizeLevel: 3 })
   value = text;
   update()
@@ -280,29 +269,29 @@ const solc = wrapper(window.Module);
 
     };
     
-    let out1 = await asc.main([
-      "index.ts", "--textFile", "--optimize"
-    ], {
-      readFile(name, baseDir) {
-        if (Object.prototype.hasOwnProperty.call(files, name)) return files[name];
-        return null;
-      },
-      writeFile(name, data, baseDir) {
-      },
-      listFiles(dirname, baseDir) {
-        return [];
-      }
-    });
+    // let out1 = await asc.main([
+    //   "index.ts", "--textFile", "--optimize"
+    // ], {
+    //   readFile(name, baseDir) {
+    //     if (Object.prototype.hasOwnProperty.call(files, name)) return files[name];
+    //     return null;
+    //   },
+    //   writeFile(name, data, baseDir) {
+    //   },
+    //   listFiles(dirname, baseDir) {
+    //     return [];
+    //   }
+    // });
 
-    error = out1.error
-    stdout = out1.stdout;
+    // error = out1.error
+    // stdout = out1.stdout;
 
     //let addWASM = asc.compileString(addSource, { optimizeLevel: 3 })
     //out.innerHTML = stdout.toString();
-    code = stdout.toString();
-    editor2.doc.setValue(code)
-    compileWasm(code)
-    console.log(error, code);
+    //code = stdout.toString();
+    //editor2.doc.setValue(code)
+    //compileWasm(code)
+    //console.log(error, code);
   }
   update()
   // export { update }
