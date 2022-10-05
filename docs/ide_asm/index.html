@@ -190,26 +190,6 @@ textarea {
   var value=""
   var myTheme = ""
 
-//   var myTheme = EditorView.theme({
-//   "&": {
-//     color: "white",
-//     backgroundColor: "#034"
-//   },
-//   ".cm-content": {
-//     caretColor: "#0e9"
-//   },
-//   "&.cm-focused .cm-cursor": {
-//     borderLeftColor: "#0e9"
-//   },
-//   "&.cm-focused .cm-selectionBackground, ::selection": {
-//     backgroundColor: "#074"
-//   },
-//   ".cm-gutters": {
-//     backgroundColor: "#045",
-//     color: "#ddd",
-//     border: "none"
-//   }
-// }, {dark: true})
   
       //var asc = null;
       //var update = null;
@@ -219,7 +199,17 @@ textarea {
       var editor2 = CodeMirror.fromTextArea(document.getElementById("out"), {
                 lineNumbers: true, 
                 matchBrackets: true,
+                tabSize: 4,
+                //gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
                 lineWrapping: true,
+                indentWithTabs: true,
+                theme: "darcula",
+                mode: 'javascript',
+				indentUnit: 4,
+				indentWithTabs: true,
+				// lint: true,
+				gutters: ['CodeMirror-linenumbers', 'CodeMirror-foldgutter'],
+				foldGutter: true
                 //theme: myTheme,
                 // onchange: function(instance, changeObj) {
                 //     //  loose focus here    
@@ -227,12 +217,22 @@ textarea {
                 // }  
         });
 
-      editor2.setOption("theme", "darcula");
+      //editor2.setOption("theme", "darcula");
 
       var editor = CodeMirror.fromTextArea(document.getElementById("code"), {
                 lineNumbers: true, 
                 matchBrackets: true,
+                tabSize: 4,
+                gutters: ["linenumbers", "foldgutter"],
                 lineWrapping: true,
+                indentWithTabs: true,
+                theme: "darcula",
+                mode: 'application/javascript',
+				indentUnit: 4,
+				indentWithTabs: true,
+				// lint: true,
+				gutters: ['CodeMirror-linenumbers', 'CodeMirror-foldgutter'],
+				foldGutter: true
                 //theme: myTheme,
                 // onchange: function(instance, changeObj) {
                 //     //  loose focus here    
@@ -240,7 +240,7 @@ textarea {
                 // }  
         });
 
-        editor.setOption("theme", "darcula");
+        //editor.setOption("theme", "darcula");
         editor.on('change', (editor) => {
   const text = editor.doc.getValue();
   let out = document.getElementById("out")
