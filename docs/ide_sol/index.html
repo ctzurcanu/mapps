@@ -4,10 +4,10 @@
         <title>Solidity IDE</title>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js" integrity="sha512-8RnEqURPUc5aqFEN04aQEiPlSAdE0jlFS/9iGgUyNtwFnSKCXhmB6ZTNl7LnDtDWKabJIASzXrzD0K+LYexU9g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
-        <script
+        <!-- <script
   type="text/javascript"
   src="https://binaries.soliditylang.org/bin/soljson-latest.js"
-></script>
+></script> -->
 
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.css" integrity="sha512-uf06llspW44/LZpHzHT6qBOIVODjWtv4MxCricRxkzvopAlSWnTf6hpZTFxuuZcuNE9CBQhqE0Seu1CoRk84nQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
@@ -39,6 +39,8 @@
       </script>
 
 <script src="https://unpkg.com/split.js/dist/split.min.js"></script>
+
+
 <style>
 html, body, .split, #out1, #out2 {
   width: 100%;
@@ -173,8 +175,32 @@ contract Storage {
       
     </script>
 
-<script type="module">
-  import * as solcjs from 'solcjs';
+
+<script>
+  var worker = new Worker(
+    './worker.js', 
+    // { type: "module" }
+  );
+  console.log('---worker---', worker);
+  worker.addEventListener('message', function (e) {
+    console.log('worker sent message', e);
+    const output = e.data.output
+    for (var contractName in output.contracts['contract']) {
+      console.log(`Bytecode of contract: ${contractName}: ${output.contracts['contract'][contractName].evm.bytecode.object}`);
+    }
+  }, false);
+
+  worker.postMessage({
+    contractCode: 'contract C { function f() public { } }',
+  })
+</script>
+
+<!-- <script type="module">
+  import * as wrapper from 'solc/wrapper';
+  const solc = wrapper(window.Module);
+  const compiler = solc.compile;
+
+  // import * as solcjs from 'solcjs';
   //const solc = wrapper(window.Module);
   //import * as ssol from 'solc';
   //const solc = solcw();
@@ -203,7 +229,9 @@ contract Storage {
 
 
 //const output = await solc.versions()
-const compiler = await solcjs("latest")
+// const compiler = await solcjs("latest")
+
+
 var output = JSON.parse(await compiler(JSON.stringify(input)));
 console.log("outp", output)
   //import "wabt";
@@ -366,6 +394,9 @@ console.log("outp", output)
   }
   update()
   // export { update }
-  </script>
-  </body>
+  </script> -->
+  
+
+
+</body>
 </html>
