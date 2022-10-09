@@ -1,6 +1,7 @@
-importScripts('https://binaries.soliditylang.org/bin/soljson-v0.8.4+commit.c7e474f2.js')
+importScripts('https://binaries.soliditylang.org/bin/soljson-v0.8.4+commit.c7e474f2.js');
+import wrapper from 'solc/wrapper';
 
-console.log('------WORKER');
+console.log('------WORKER', wrapper);
 // console.log(solcjs);
 
 // const wrapper = require('solc/wrapper');
@@ -28,9 +29,9 @@ self.addEventListener('message', (e) => {
 		}
 	};
 
-	// const compiler = wrapper(self.Module)
-    const compiler = _solidity_compile;
-    const result = compiler(JSON.stringify(sourceCode));
+	const compiler = wrapper(self.Module);
+    // const compiler = _solidity_compile;
+    const result = compiler.compile(JSON.stringify(sourceCode));
     console.log('result', result);
 	self.postMessage({
 		output: JSON.parse(result),
