@@ -177,22 +177,152 @@ contract Storage {
 
 
 <script>
+
+  var editor = CodeMirror.fromTextArea(document.getElementById("code"), {
+    lineNumbers: true, 
+    matchBrackets: true,
+    lineWrapping: true,
+    tabSize: 4,
+    gutters: ["linenumbers", "foldgutter"],
+    lineWrapping: true,
+    indentWithTabs: true,
+    theme: "darcula",
+    mode: "text/x-solidity",
+    indentUnit: 4,
+    indentWithTabs: true,
+    // lint: true,
+    gutters: ['CodeMirror-linenumbers', 'CodeMirror-foldgutter'],
+    foldGutter: true
+  });
+
+  var editor1 = CodeMirror.fromTextArea(document.getElementById("out1"), {
+    lineNumbers: true, 
+    matchBrackets: true,
+    lineWrapping: true,
+    tabSize: 4,
+    gutters: ["linenumbers", "foldgutter"],
+    lineWrapping: true,
+    indentWithTabs: true,
+    theme: "darcula",
+    mode: 'application/javascript',
+    indentUnit: 4,
+    indentWithTabs: true,
+    // lint: true,
+    gutters: ['CodeMirror-linenumbers', 'CodeMirror-foldgutter'],
+    foldGutter: true
+  });
+
+  var editor2 = CodeMirror.fromTextArea(document.getElementById("out2"), {
+    lineNumbers: true, 
+    matchBrackets: true,
+    lineWrapping: true,
+    tabSize: 4,
+    gutters: ["linenumbers", "foldgutter"],
+    lineWrapping: true,
+    indentWithTabs: true,
+    theme: "darcula",
+    mode: 'application/javascript',
+    indentUnit: 4,
+    indentWithTabs: true,
+    // lint: true,
+    gutters: ['CodeMirror-linenumbers', 'CodeMirror-foldgutter'],
+    foldGutter: true
+  });
+
   var worker = new Worker(
     './dist/worker.js',
     // { type: "module" }
   );
+
   console.log('---worker---', worker);
   worker.addEventListener('message', function (e) {
-    console.log('worker sent message', e);
-    const output = e.data.output
-    for (var contractName in output.contracts['contract']) {
-      console.log(`Bytecode of contract: ${contractName}: ${output.contracts['contract'][contractName].evm.bytecode.object}`);
+    const output = e.data.output;
+    console.log('worker sent output', output);
+
+    if (output.errors) {
+      const msg = output.errors.map(err => err.formattedMessage || err.message).join('/n');
+      editor1.doc.setValue(msg);
+    }
+    if (!output.contracts) return;
+
+    const contractName = Object.keys(output.contracts['contract'])[0];
+    const compiled = output.contracts.contract[contractName];
+
+    if (compiled.irOptimized) {
+      editor1.doc.setValue(compiled.irOptimized)
+    }
+    
+    if (compiled.evm && compiled.evm.bytecode) {
+      const opcodes = compiled.evm.bytecode.opcodes.replace(/\s/g, '\n');
+      editor2.doc.setValue(opcodes)
     }
   }, false);
 
-  worker.postMessage({
-    contractCode: 'contract C { function f() public { } }',
+
+  function compile(contractCode, yul = false) {
+    const data = {
+      sourceCode: {
+        language: 'Solidity',
+        sources: {
+          contract: {
+            content: contractCode,
+          }
+        },
+        settings: {
+          outputSelection: {
+          	'*': {
+          		'*': ['*']
+          	}
+          },
+        }
+      }
+    }
+    if (yul) {
+      data.sourceCode.settings = {
+        viaIR: true,
+        optimizer: {
+          enabled: true,
+          runs: 1000,
+        },
+        outputSelection: {
+          '*': {
+            '*': ['evm.assembly', 'irOptimized']
+          }
+        }
+      }
+    }
+
+    worker.postMessage(data);
+  }
+
+  function update() {
+    compile(editor.doc.getValue());
+    compile(editor.doc.getValue(), true);
+  }
+
+  var btn = document.getElementById("compile")
+  btn.addEventListener("click",()=>{
+    update();
+
+    // let play = document.getElementById("play")
+    // wout = compileWasm(editor2.doc.getValue())
+    // console.log(wout);
+    // let hout="";
+    // for (let item in wout){
+    //   if (item !="memory") {
+    //     let inps = Array(wout[item].length).fill("<input onchange=\"module.doit('"+item+"')\" class=\""+item+"_\"></input>")
+    //     hout = hout + " <button onclick=\"module.doit('"+item+"')\">"+ item+"</button>("+ inps.join(", ")+ (") = <input class=\""+item+"_o\"></input>")+"<br>";
+    //   }
+      
+        
+    // }
+    // play.innerHTML = hout;
   })
+
+  
+  update();
+
+
 </script>
 
 <!-- <script type="module">

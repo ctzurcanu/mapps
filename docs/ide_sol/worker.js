@@ -11,28 +11,13 @@ console.log('------WORKER', wrapper);
 // console.log('---wrapper', wrapper);
 
 self.addEventListener('message', (e) => {
-    console.log('----worker received message', e);
-	const contractCode = e.data.contractCode
-	const sourceCode = {
-		language: 'Solidity',
-		sources: {
-			contract: {
-				content: contractCode,
-			}
-		},
-		settings: {
-			outputSelection: {
-				'*': {
-					'*': ['*']
-				}
-			}
-		}
-	};
+	const sourceCode = e.data.sourceCode;
+	console.log('----worker received sourceCode', sourceCode);
 
 	const compiler = wrapper(self.Module);
     // const compiler = _solidity_compile;
     const result = compiler.compile(JSON.stringify(sourceCode));
-    console.log('result', result);
+    // console.log('result', result);
 	self.postMessage({
 		output: JSON.parse(result),
 	})

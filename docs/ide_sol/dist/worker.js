@@ -16452,27 +16452,12 @@ console.log('------WORKER', _wrapper["default"]); // console.log(solcjs);
 // console.log('---wrapper', wrapper);
 
 self.addEventListener('message', function (e) {
-  console.log('----worker received message', e);
-  var contractCode = e.data.contractCode;
-  var sourceCode = {
-    language: 'Solidity',
-    sources: {
-      contract: {
-        content: contractCode
-      }
-    },
-    settings: {
-      outputSelection: {
-        '*': {
-          '*': ['*']
-        }
-      }
-    }
-  };
+  var sourceCode = e.data.sourceCode;
+  console.log('----worker received sourceCode', sourceCode);
   var compiler = (0, _wrapper["default"])(self.Module); // const compiler = _solidity_compile;
 
-  var result = compiler.compile(JSON.stringify(sourceCode));
-  console.log('result', result);
+  var result = compiler.compile(JSON.stringify(sourceCode)); // console.log('result', result);
+
   self.postMessage({
     output: JSON.parse(result)
   });
