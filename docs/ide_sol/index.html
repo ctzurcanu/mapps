@@ -40,6 +40,8 @@
 
 <script src="https://unpkg.com/split.js/dist/split.min.js"></script>
 
+<script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js"
+        type="application/javascript"></script>
 
 <style>
 html, body, .split, #out1, #out2 {
@@ -115,8 +117,12 @@ textarea {
   width: 300px;
 }
 
-#play_address, #deploybtn {
+#play_address, #deploybtn, #gotocontract {
   height: 35px;
+}
+
+#play_address {
+  width: 200px;
 }
 
 </style>
@@ -166,7 +172,7 @@ contract Storage {
           </div>
         </div>
         <div class="split content" id="split-02">
-          <button id="compile" >&gt;</button>
+          <button id="compile" >&gt;&gt;&gt;</button>
           <div id="play">
             <div class="playx" id="play-1">
               <textarea id="play_bytecode"></textarea>
@@ -175,8 +181,11 @@ contract Storage {
               <textarea id="play_abi"></textarea>
             </div>
             <div id="play-2">
-              <input id="play_address" placeholder="0x..."></textarea>
               <div><button id="deploybtn" >deploy</button></div>
+              <div>
+                <input id="play_address" placeholder="0x..."></textarea>
+                <button id="gotocontract" >dApp</button>
+              </div>
             </div>
           </div>
         </div>
@@ -190,6 +199,7 @@ contract Storage {
     cursor: 'row-resize',
 })
       Split(["#split-0", "#split-1", "#split-2"],{
+        sizes: [40, 40, 20],
         snapOffset: 10,
       });
 
@@ -291,8 +301,10 @@ contract Storage {
     './dist/worker.js',
     // { type: "module" }
   );
+  let compiledSol;
+  let deployedAddress;
+  let contractName;
 
-  console.log('---worker---', worker);
   worker.addEventListener('message', function (e) {
     const output = e.data.output;
     console.log('worker sent output', output);
@@ -303,11 +315,14 @@ contract Storage {
     }
     if (!output.contracts) return;
 
-    const contractName = Object.keys(output.contracts['contract'])[0];
+    contractName = Object.keys(output.contracts['contract'])[0];
     const compiled = output.contracts.contract[contractName];
 
     if (compiled.irOptimized) {
       editor1.doc.setValue(compiled.irOptimized)
+    }
+    else {
+      compiledSol = compiled;
     }
 
     if (compiled.evm && compiled.evm.assembly) {
@@ -380,18 +395,49 @@ contract Storage {
     compile(editor.doc.getValue(), true);
   }
 
+  async function deploy() {
+    console.log('----compiledSol', compiledSol);
+    if (!compiledSol || !compiledSol.evm || !compiledSol.evm.bytecode) return;
+    const bytecode = '0x' + compiledSol.evm.bytecode.object;
+    const abi = compiledSol.abi;
+    const args = []; // TODO
+
+    const provider = new ethers.providers.Web3Provider(window.ethereum)
+    await provider.send("eth_requestAccounts", []);
+    console.log('provider', provider);
+    const signer = provider.getSigner();
+    console.log('signer', signer);
+
+    const factory = new ethers.ContractFactory(abi, bytecode, signer);
+    console.log('factory', factory);
+    const contract = await factory.deploy(...args);
+    console.log('contract deployed', contract);
+    // const receipt = await contract.deployTransaction.wait();
+    // console.log('receipt', receipt);
+    return contract.address;
+  }
+
   var btn = document.getElementById("compile")
   btn.addEventListener("click",()=>{
     update();
   })
 
   const deploybtn = document.getElementById('deploybtn')
-  deploybtn.addEventListener('click', () => {
-    console.log('---deploy');
-    // TODO deploy
-    // link to mark factory contract
+  deploybtn.addEventListener('click', async () => {
+    const address = await deploy();
+    console.log('---address', address);
+    const addr = document.getElementById('play_address');
+    addr.value = address;
   });
 
+  const gotocontract = document.getElementById('gotocontract');
+  gotocontract.addEventListener('click', async () => {
+    const deployedAddress = document.getElementById('play_address').value;
+    if (!compiledSol || !compiledSol.abi || !deployedAddress) return;
+    const abi = encodeURIComponent(JSON.stringify(compiledSol.abi));
+    const markHash = 'QmPXUY7iyjncoopuLJptRh3mvqWiGLQNNYsHNrqCGHBrAk';
+    window.open(`https://mark.provable.dev?ipfs=${markHash}&address=${deployedAddress}&abi=${abi}&name=${contractName}`);
+  });
   
   update();
 
