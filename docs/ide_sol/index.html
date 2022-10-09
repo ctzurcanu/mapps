@@ -107,6 +107,18 @@ textarea {
     cursor: row-resize;
 }
 
+#play {
+  display: flex;
+}
+
+.playx {
+  width: 300px;
+}
+
+#play_address, #deploybtn {
+  height: 35px;
+}
+
 </style>
 </head>
     <body>
@@ -155,7 +167,18 @@ contract Storage {
         </div>
         <div class="split content" id="split-02">
           <button id="compile" >&gt;</button>
-          <div id="play"></div>
+          <div id="play">
+            <div class="playx" id="play-1">
+              <textarea id="play_bytecode"></textarea>
+            </div>
+            <div class="playx" id="play-2">
+              <textarea id="play_abi"></textarea>
+            </div>
+            <div id="play-2">
+              <input id="play_address" placeholder="0x..."></textarea>
+              <div><button id="deploybtn" >deploy</button></div>
+            </div>
+          </div>
         </div>
 
 
@@ -229,6 +252,41 @@ contract Storage {
     foldGutter: true
   });
 
+  var editorB = CodeMirror.fromTextArea(document.getElementById("play_bytecode"), {
+    lineNumbers: true, 
+    matchBrackets: true,
+    lineWrapping: true,
+    tabSize: 4,
+    gutters: ["linenumbers", "foldgutter"],
+    lineWrapping: true,
+    indentWithTabs: true,
+    theme: "darcula",
+    mode: 'application/javascript',
+    indentUnit: 4,
+    indentWithTabs: true,
+    // lint: true,
+    gutters: ['CodeMirror-linenumbers', 'CodeMirror-foldgutter'],
+    foldGutter: true
+  });
+
+  var editorA = CodeMirror.fromTextArea(document.getElementById("play_abi"), {
+    lineNumbers: true, 
+    matchBrackets: true,
+    lineWrapping: true,
+    tabSize: 4,
+    gutters: ["linenumbers", "foldgutter"],
+    lineWrapping: true,
+    indentWithTabs: true,
+    theme: "darcula",
+    mode: 'application/javascript',
+    indentUnit: 4,
+    indentWithTabs: true,
+    // lint: true,
+    gutters: ['CodeMirror-linenumbers', 'CodeMirror-foldgutter'],
+    foldGutter: true
+  });
+
+
   var worker = new Worker(
     './dist/worker.js',
     // { type: "module" }
@@ -251,11 +309,33 @@ contract Storage {
     if (compiled.irOptimized) {
       editor1.doc.setValue(compiled.irOptimized)
     }
-    
-    if (compiled.evm && compiled.evm.bytecode) {
-      const opcodes = compiled.evm.bytecode.opcodes.replace(/\s/g, '\n');
+
+    if (compiled.evm && compiled.evm.assembly) {
+      const opcodes = compiled.evm.assembly;
       editor2.doc.setValue(opcodes)
     }
+
+    if (compiled.evm && compiled.evm.bytecode) {
+      editorB.doc.setValue(compiled.evm.bytecode.object);
+    }
+
+    if (compiled.abi) {
+      editorA.doc.setValue(JSON.stringify(compiled.abi));
+    }
+
+    // let play = document.getElementById("play")
+  
+    // wout = compileWasm(editor2.doc.getValue())
+    // console.log(wout);
+    // let hout="";
+    // for (let item in wout){
+    //   if (item !="memory") {
+    //     let inps = Array(wout[item].length).fill("<input onchange=\"module.doit('"+item+"')\" class=\""+item+"_\"></input>")
+    //     hout = hout + " <button onclick=\"module.doit('"+item+"')\">"+ item+"</button>("+ inps.join(", ")+ (") = <input class=\""+item+"_o\"></input>")+"<br>";
+    //   }  
+    // }
+    // play.innerHTML = hout;
+
   }, false);
 
 
@@ -303,21 +383,14 @@ contract Storage {
   var btn = document.getElementById("compile")
   btn.addEventListener("click",()=>{
     update();
-
-    // let play = document.getElementById("play")
-    // wout = compileWasm(editor2.doc.getValue())
-    // console.log(wout);
-    // let hout="";
-    // for (let item in wout){
-    //   if (item !="memory") {
-    //     let inps = Array(wout[item].length).fill("<input onchange=\"module.doit('"+item+"')\" class=\""+item+"_\"></input>")
-    //     hout = hout + " <button onclick=\"module.doit('"+item+"')\">"+ item+"</button>("+ inps.join(", ")+ (") = <input class=\""+item+"_o\"></input>")+"<br>";
-    //   }
-      
-        
-    // }
-    // play.innerHTML = hout;
   })
+
+  const deploybtn = document.getElementById('deploybtn')
+  deploybtn.addEventListener('click', () => {
+    console.log('---deploy');
+    // TODO deploy
+    // link to mark factory contract
+  });
 
   
   update();
