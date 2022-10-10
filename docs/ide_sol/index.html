@@ -436,7 +436,7 @@ contract Storage {
     if (!compiledSol || !compiledSol.abi || !deployedAddress) return;
     const abi = encodeURIComponent(JSON.stringify(compiledSol.abi));
     const markHash = 'QmPXUY7iyjncoopuLJptRh3mvqWiGLQNNYsHNrqCGHBrAk';
-    window.open(`https://mark.provable.dev?ipfs=${markHash}&address=${deployedAddress}&abi=${abi}&name=${contractName}`);
+    window.open(`https://mark.provable.dev?ipfs=${markHash}&address=${deployedAddress}&abi=${abi}&name=${contractName}&m=e`);
   });
   
   update();
