@@ -19,7 +19,7 @@
 
         <link rel="stylesheet" href="https://alincode.github.io/codemirror-solidity/solidity.css" />
 
-       
+
 
 
 
@@ -27,7 +27,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed&display=swap" rel="stylesheet">
 
-    
+
     <script async src="https://cdn.jsdelivr.net/npm/es-module-shims@1.3.2/dist/es-module-shims.js"></script>
 
     <script type="importmap">
@@ -47,7 +47,7 @@
 html, body, .split, #out1, #out2 {
   width: 100%;
   height: 100%;
-  border-color: transparent; 
+  border-color: transparent;
   background-color: #2b2b2b;
   color: #a9b7c6;
   margin: 0px;
@@ -155,7 +155,7 @@ contract Storage {
     }
 
     /**
-      * @dev Return value 
+      * @dev Return value
       * @return value of 'number'
       */
     function retrieve() public view returns (uint256){
@@ -205,14 +205,14 @@ contract Storage {
 
       const module = {};
       //console.log("ssolc", solc)
-      
+
     </script>
 
 
 <script>
 
   var editor = CodeMirror.fromTextArea(document.getElementById("code"), {
-    lineNumbers: true, 
+    lineNumbers: true,
     matchBrackets: true,
     lineWrapping: true,
     tabSize: 4,
@@ -229,7 +229,7 @@ contract Storage {
   });
 
   var editor1 = CodeMirror.fromTextArea(document.getElementById("out1"), {
-    lineNumbers: true, 
+    lineNumbers: true,
     matchBrackets: true,
     lineWrapping: true,
     tabSize: 4,
@@ -246,7 +246,7 @@ contract Storage {
   });
 
   var editor2 = CodeMirror.fromTextArea(document.getElementById("out2"), {
-    lineNumbers: true, 
+    lineNumbers: true,
     matchBrackets: true,
     lineWrapping: true,
     tabSize: 4,
@@ -263,7 +263,7 @@ contract Storage {
   });
 
   var editorB = CodeMirror.fromTextArea(document.getElementById("play_bytecode"), {
-    lineNumbers: true, 
+    lineNumbers: true,
     matchBrackets: true,
     lineWrapping: true,
     tabSize: 4,
@@ -280,7 +280,7 @@ contract Storage {
   });
 
   var editorA = CodeMirror.fromTextArea(document.getElementById("play_abi"), {
-    lineNumbers: true, 
+    lineNumbers: true,
     matchBrackets: true,
     lineWrapping: true,
     tabSize: 4,
@@ -339,7 +339,7 @@ contract Storage {
     }
 
     // let play = document.getElementById("play")
-  
+
     // wout = compileWasm(editor2.doc.getValue())
     // console.log(wout);
     // let hout="";
@@ -347,7 +347,7 @@ contract Storage {
     //   if (item !="memory") {
     //     let inps = Array(wout[item].length).fill("<input onchange=\"module.doit('"+item+"')\" class=\""+item+"_\"></input>")
     //     hout = hout + " <button onclick=\"module.doit('"+item+"')\">"+ item+"</button>("+ inps.join(", ")+ (") = <input class=\""+item+"_o\"></input>")+"<br>";
-    //   }  
+    //   }
     // }
     // play.innerHTML = hout;
 
@@ -438,7 +438,7 @@ contract Storage {
     const markHash = 'QmPXUY7iyjncoopuLJptRh3mvqWiGLQNNYsHNrqCGHBrAk';
     window.open(`https://mark.provable.dev?ipfs=${markHash}&address=${deployedAddress}&abi=${abi}&name=${contractName}&m=e`);
   });
-  
+
   update();
 
 
@@ -492,7 +492,7 @@ console.log("outp", output)
   //wabti.then((x)=>{wabt = x;})
 
   function doit(act){
-    
+
     let els = document.querySelectorAll("."+act+"_")
     let outp = document.querySelector("."+act+"_o")
     let ins =[]
@@ -505,7 +505,7 @@ console.log("outp", output)
     console.log(wout["memory"])
   }
   module.doit = doit
-  
+
 
   function compileWasm(code1) {
     const module = wabt.parseWat('unnamed.wat', code1);
@@ -532,20 +532,20 @@ console.log("outp", output)
         let inps = Array(wout[item].length).fill("<input onchange=\"module.doit('"+item+"')\" class=\""+item+"_\"></input>")
         hout = hout + " <button onclick=\"module.doit('"+item+"')\">"+ item+"</button>("+ inps.join(", ")+ (") = <input class=\""+item+"_o\"></input>")+"<br>";
       }
-      
-        
+
+
     }
     play.innerHTML = hout;
   })
 
-  
+
   var value=""
 
       var stdout
       var error
 
       var editor1 = CodeMirror.fromTextArea(document.getElementById("out1"), {
-                lineNumbers: true, 
+                lineNumbers: true,
                 matchBrackets: true,
                 lineWrapping: true,
                 tabSize: 4,
@@ -563,7 +563,7 @@ console.log("outp", output)
 
 
       var editor2 = CodeMirror.fromTextArea(document.getElementById("out2"), {
-                lineNumbers: true, 
+                lineNumbers: true,
                 matchBrackets: true,
                 lineWrapping: true,
                 tabSize: 4,
@@ -581,7 +581,7 @@ console.log("outp", output)
 
 
       var editor = CodeMirror.fromTextArea(document.getElementById("code"), {
-                lineNumbers: true, 
+                lineNumbers: true,
                 matchBrackets: true,
                 lineWrapping: true,
                 tabSize: 4,
@@ -606,17 +606,17 @@ console.log("outp", output)
   update()
   //out.innerHTML = text;
   console.log(text);
-  
+
 });
-  
-  
+
+
   async function update(){
     const files = {
       "index.ts": value
       //"export function add(a: i32, b: i32): i32 {\n            return a + b;\n          }"
 
     };
-    
+
     // let out1 = await asc.main([
     //   "index.ts", "--textFile", "--optimize"
     // ], {
@@ -644,7 +644,7 @@ console.log("outp", output)
   update()
   // export { update }
   </script> -->
-  
+
 
 
 </body>

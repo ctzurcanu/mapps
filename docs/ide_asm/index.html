@@ -103,6 +103,16 @@ textarea {
     cursor: row-resize;
 }
 
+label {
+    display: block;
+    font: 1rem 'Roboto Condensed', sans-serif;
+}
+
+input,
+label {
+    margin: .4rem 0;
+}
+
 </style>
 </head>
     <body>
@@ -115,7 +125,16 @@ textarea {
 }</textarea>
             </div>
             <div id="split-1">
-              <textarea id="out"></textarea>
+              <div class="split">
+                <div id="split-11">
+                  <textarea id="out"></textarea>
+                </div>
+                <div id="split-12">
+                  <label for="wasmfile">Choose a wasm file:</label>
+                  <input type="file" id="wasmfile" name="wasmfile" accept="application/wasm">
+                </div>
+              </div>
+
             </div>
           </div>
         </div>
@@ -123,8 +142,6 @@ textarea {
           <button id="compile" >&gt;</button>
           <div id="play"></div>
         </div>
-
-
     <script>
       Split(['#split-01', '#split-02'], {
     direction: 'vertical',
@@ -133,6 +150,10 @@ textarea {
     cursor: 'row-resize',
 })
       Split(["#split-0", "#split-1"],{
+        snapOffset: 10,
+      });
+
+      Split(["#split-11", "#split-12"],{
         snapOffset: 10,
       });
 
@@ -150,12 +171,20 @@ textarea {
   //import "wabt";
   //import {wabt} from 'https://cdn.jsdelivr.net/gh/AssemblyScript/wabt.js@1.0.29/index.js';
   //console.log(WabtModule)
+
+  var wout;
   var wabti = WabtModule();
   var wabt = null;
+
+  var worker = new Worker(
+    './worker.js',
+    // { type: "module" }
+  );
+
   wabti.then((x)=>{wabt = x;})
 
   function doit(act){
-
+console.log('doit', act, wout)
     let els = document.querySelectorAll("."+act+"_")
     let outp = document.querySelector("."+act+"_o")
     let ins =[]
@@ -163,9 +192,14 @@ textarea {
       ins.push(els[i].value)
     }
     console.log(act,wout,els, ins)
-    let ans = wout[act](...ins)
-    outp.value = ans
-    console.log(wout["memory"])
+    if (wout) {
+      let ans = wout[act](...ins)
+      outp.value = ans
+      console.log(wout["memory"])
+    }
+    else {
+      worker.postMessage({type: 'execute', method: act, inputs: ins});
+    }
   }
   module.doit = doit
 
@@ -182,23 +216,32 @@ textarea {
     return instance.exports;
   }
 
-  var code = ""
-  var wout ={}
-  var btn = document.getElementById("compile")
-  btn.addEventListener("click",()=>{
+  async function blobToWasm(wfile) {
+    const buf = await wfile.arrayBuffer()
+    const {WebAssembly} = window;
+    const wasm = new WebAssembly.Module(buf);
+    const instance = new WebAssembly.Instance(wasm, {});
+    console.log(instance);
+    return instance.exports;
+  }
+
+  function interfaceFromWasm (_wout) {
     let play = document.getElementById("play")
-    wout = compileWasm(editor2.doc.getValue())
-    console.log(wout);
     let hout="";
-    for (let item in wout){
+    for (let item in _wout){
       if (item !="memory") {
-        let inps = Array(wout[item].length).fill("<input onchange=\"module.doit('"+item+"')\" class=\""+item+"_\"></input>")
+        let inps = Array(_wout[item].length).fill("<input onchange=\"module.doit('"+item+"')\" class=\""+item+"_\"></input>")
         hout = hout + " <button onclick=\"module.doit('"+item+"')\">"+ item+"</button>("+ inps.join(", ")+ (") = <input class=\""+item+"_o\"></input>")+"<br>";
       }
-
-
     }
     play.innerHTML = hout;
+  }
+
+  var code = ""
+  var btn = document.getElementById("compile")
+  btn.addEventListener("click",()=>{
+    wout = compileWasm(editor2.doc.getValue())
+    interfaceFromWasm(wout);
   })
 
 
@@ -307,6 +350,33 @@ editorOnChange(editor);
   }
   update()
   // export { update }
+
+  document.getElementById('wasmfile').addEventListener('change', async (ev) => {
+    const files = document.getElementById('wasmfile').files;
+    if (!files || files.length === 0) {
+      return;
+    }
+    const wfile = files[0];
+    console.log('wfile', wfile)
+    wout = null;
+
+    worker.postMessage({type: 'instantiate', inputs: [wfile]});
+  });
+
+  worker.addEventListener('message', function (e) {
+    const {output, type, method} = e.data;
+    console.log('worker sent output', output);
+
+    if (type === 'instantiate') {
+      let play = document.getElementById("play")
+      play.innerHTML = output;
+    }
+    else if (type === 'execute') {
+      let outp = document.querySelector("."+method+"_o")
+      outp.value = output
+    }
+  });
+
   </script>
   </body>
 </html>
