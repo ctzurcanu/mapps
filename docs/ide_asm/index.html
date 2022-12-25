@@ -161,6 +161,7 @@ label {
 
     </script>
 
+
 <script type="module">
   import asc from "assemblyscript/asc";
 
@@ -211,7 +212,70 @@ console.log('doit', act, wout)
     const binary = module.toBinary({log: true, write_debug_names:true});
     const {WebAssembly} = window;
     const wasm = new WebAssembly.Module(binary.buffer);
-    const instance = new WebAssembly.Instance(wasm, {});
+    const fxgen = function(argum){
+      return ()=>{
+        console.log(argum);
+      }
+    }
+    const importObject = {
+    //  imports: {
+    env: {
+        abort: fxgen("env.abort"),
+        db_read: fxgen("env.abort"),
+        db_write: fxgen("env.abort"),
+        db_remove: fxgen("env.abort"),
+        addr_validate: fxgen("env.abort"),
+        addr_canonicalize: fxgen("env.abort"),
+        addr_humanize: fxgen("env.abort"),
+        secp256k1_verify: fxgen("env.abort"),
+        secp256k1_recover_pubkey: fxgen("env.abort"),
+        ed25519_verify: fxgen("env.abort"),
+        ed25519_batch_verify: fxgen("env.abort"),
+        debug: fxgen("env.abort"),
+        query_chain: fxgen("env.abort"),
+        db_scan: fxgen("env.abort"),
+        db_next: fxgen("env.abort")
+      
+    },
+      ethereum: { 
+        useGas: fxgen("ethereum.useGas"),
+        getAddress: fxgen("ethereum.getAddress"),
+        getExternalBalance: fxgen("ethereum.getExternalBalance"),
+        getBlockHash: fxgen("ethereum.getBlockHash"),
+        call: fxgen("ethereum.call"),
+        callDataCopy: fxgen("ethereum.callDataCopy"),
+        getCallDataSize: fxgen("ethereum.getCallDataSize"),
+        callDataLoad: fxgen("ethereum.callDataLoad"),
+        callCode: fxgen("ethereum.callCode"),
+        callDelegate: fxgen("ethereum.callDelegate"),
+        callStatic: fxgen("ethereum.callStatic"),
+        storageStore: fxgen("ethereum.storageStore"),
+        storageLoad: fxgen("ethereum.storageLoad"),
+        getCaller: fxgen("ethereum.getCaller"),
+        getCallValue: fxgen("ethereum.getCallValue"),
+        codeCopy: fxgen("ethereum.codeCopy"),
+        getBlockCoinbase: fxgen("ethereum.getBlockCoinbase"),
+        create: fxgen("ethereum.create"),
+        getBlockDifficulty: fxgen("ethereum.getBlockDifficulty"),
+        externalCodeCopy: fxgen("ethereum.externalCodeCopy"),
+        getExternalCodeSize: fxgen("ethereum.getExternalCodeSize"),
+        getGasLeft: fxgen("ethereum.getGasLeft"),
+        getBlockGasLimit: fxgen("ethereum.getBlockGasLimit"),
+        getTxGasPrice: fxgen("ethereum.getTxGasPrice"),
+        log: fxgen("ethereum.log"),
+        getBlockNumber: fxgen("ethereum.getBlockNumber"),
+        getTxOrigin: fxgen("ethereum.getTxOrigin"),
+        finish: fxgen("ethereum.finish"),
+        revert: fxgen("ethereum.revert"),
+        getReturnDataSize: fxgen("ethereum.getReturnDataSize"),
+        returnDataCopy: fxgen("ethereum.returnDataCopy"),
+        selfDestruct: fxgen("ethereum.selfDestruct"),
+        getBlockTimestamp: fxgen("ethereum.getBlockTimestamp")
+      }
+    //}
+  }
+
+    const instance = new WebAssembly.Instance(wasm, importObject);
     console.log(binary,binary.buffer.length);
     return instance.exports;
   }

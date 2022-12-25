@@ -1,6 +1,11 @@
 console.log('------WORKER');
 
 const printArgs = (fname) => (...args) => console.log('!!!!!', fname, args);
+const fxgen = function(argum){
+  return ()=>{
+    console.log(argum);
+  }
+}
 
 const importObj = {
   env: {
@@ -21,6 +26,42 @@ const importObj = {
     query_chain: printArgs('query_chain'),
 
   },
+  ethereum: { 
+    useGas: fxgen("ethereum.useGas"),
+    getAddress: fxgen("ethereum.getAddress"),
+    getExternalBalance: fxgen("ethereum.getExternalBalance"),
+    getBlockHash: fxgen("ethereum.getBlockHash"),
+    call: fxgen("ethereum.call"),
+    callDataCopy: fxgen("ethereum.callDataCopy"),
+    getCallDataSize: fxgen("ethereum.getCallDataSize"), 
+    getCodeSize: fxgen("ethereum.getCodeSize"),
+    callDataLoad: fxgen("ethereum.callDataLoad"),
+    callCode: fxgen("ethereum.callCode"),
+    callDelegate: fxgen("ethereum.callDelegate"),
+    callStatic: fxgen("ethereum.callStatic"),
+    storageStore: fxgen("ethereum.storageStore"),
+    storageLoad: fxgen("ethereum.storageLoad"),
+    getCaller: fxgen("ethereum.getCaller"),
+    getCallValue: fxgen("ethereum.getCallValue"),
+    codeCopy: fxgen("ethereum.codeCopy"),
+    getBlockCoinbase: fxgen("ethereum.getBlockCoinbase"),
+    create: fxgen("ethereum.create"),
+    getBlockDifficulty: fxgen("ethereum.getBlockDifficulty"),
+    externalCodeCopy: fxgen("ethereum.externalCodeCopy"),
+    getExternalCodeSize: fxgen("ethereum.getExternalCodeSize"),
+    getGasLeft: fxgen("ethereum.getGasLeft"),
+    getBlockGasLimit: fxgen("ethereum.getBlockGasLimit"),
+    getTxGasPrice: fxgen("ethereum.getTxGasPrice"),
+    log: fxgen("ethereum.log"),
+    getBlockNumber: fxgen("ethereum.getBlockNumber"),
+    getTxOrigin: fxgen("ethereum.getTxOrigin"),
+    finish: fxgen("ethereum.finish"),
+    revert: fxgen("ethereum.revert"),
+    getReturnDataSize: fxgen("ethereum.getReturnDataSize"),
+    returnDataCopy: fxgen("ethereum.returnDataCopy"),
+    selfDestruct: fxgen("ethereum.selfDestruct"),
+    getBlockTimestamp: fxgen("ethereum.getBlockTimestamp")
+  }
 }
 
 var wout = {};
