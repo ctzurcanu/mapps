@@ -5,7 +5,7 @@
         <script async src="https://cdn.jsdelivr.net/npm/es-module-shims@1.6.2/dist/es-module-shims.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js" integrity="sha512-8RnEqURPUc5aqFEN04aQEiPlSAdE0jlFS/9iGgUyNtwFnSKCXhmB6ZTNl7LnDtDWKabJIASzXrzD0K+LYexU9g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
-        <script src="https://cdn.jsdelivr.net/gh/AssemblyScript/wabt.js@1.0.29/index.js"></script>
+        <script src="https://cdn.jsdelivr.net/gh/AssemblyScript/wabt.js@1.0.32/index.js"></script>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.css" integrity="sha512-uf06llspW44/LZpHzHT6qBOIVODjWtv4MxCricRxkzvopAlSWnTf6hpZTFxuuZcuNE9CBQhqE0Seu1CoRk84nQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
         <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/javascript/javascript.min.js" integrity="sha512-I6CdJdruzGtvDyvdO4YsiAq+pkWf2efgd1ZUSK2FnM/u2VuRASPC7GowWQrWyjxCZn6CT89s3ddGI+be0Ak9Fg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
@@ -25,8 +25,8 @@
     "long": "https://cdn.jsdelivr.net/npm/long@5.2.0/index.js",
     "assemblyscript": "https://cdn.jsdelivr.net/npm/assemblyscript@0.21.4/dist/assemblyscript.js",
     "assemblyscript/asc": "https://cdn.jsdelivr.net/npm/assemblyscript@0.21.4/dist/asc.js",
-    "wabt": "https://cdn.jsdelivr.net/gh/AssemblyScript/wabt.js@1.0.29/index.js",
     "codemirror": "https://cdn.skypack.dev/codemirror@6.0.1?min"
+    "wabt": "https://cdn.jsdelivr.net/gh/AssemblyScript/wabt.js@1.0.32/index.js",
   }
 }
 </script>
@@ -170,7 +170,7 @@ label {
   //import {EditorView} from "@codemirror/view"
 
   //import "wabt";
-  //import {wabt} from 'https://cdn.jsdelivr.net/gh/AssemblyScript/wabt.js@1.0.29/index.js';
+  //import {wabt} from 'https://cdn.jsdelivr.net/gh/AssemblyScript/wabt.js@1.0.32/index.js';
   //console.log(WabtModule)
 
   var wout;
@@ -206,7 +206,7 @@ console.log('doit', act, wout)
 
 
   function compileWasm(code1) {
-    const module = wabt.parseWat('unnamed.wat', code1);
+    const module = wabt.parseWat('unnamed.wat', code1, {multi_memory: true});
     module.resolveNames();
     module.validate();
     const binary = module.toBinary({log: true, write_debug_names:true});
