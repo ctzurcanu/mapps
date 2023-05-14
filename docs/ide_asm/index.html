@@ -25,8 +25,19 @@
     "long": "https://cdn.jsdelivr.net/npm/long@5.2.0/index.js",
     "assemblyscript": "https://cdn.jsdelivr.net/npm/assemblyscript@0.21.4/dist/assemblyscript.js",
     "assemblyscript/asc": "https://cdn.jsdelivr.net/npm/assemblyscript@0.21.4/dist/asc.js",
-    "codemirror": "https://cdn.skypack.dev/codemirror@6.0.1?min"
+    "assemblyscript/transform": "https://cdn.jsdelivr.net/npm/assemblyscript@0.21.4/dist/transform.js",
     "wabt": "https://cdn.jsdelivr.net/gh/AssemblyScript/wabt.js@1.0.32/index.js",
+    "codemirror": "https://cdn.skypack.dev/codemirror@6.0.1?min",
+    "visitor-as": "https://cdn.jsdelivr.net/npm/visitor-as@0.11.4/+esm",
+    "visitor-as/utils": "https://cdn.jsdelivr.net/npm/visitor-as@0.11.4/dist/utils.js/+esm",
+    "json-as/transform": "https://cdn.jsdelivr.net/npm/json-as@0.5.36/transform/lib/index.js",
+
+    "visitor-as/dist/utils.js": "https://cdn.jsdelivr.net/npm/visitor-as@0.11.4/dist/utils.js/+esm",
+    "visitor-as/dist/index.js": "https://cdn.jsdelivr.net/npm/visitor-as@0.11.4/+esm",
+    "assemblyscript/dist/transform.js": "https://cdn.jsdelivr.net/npm/assemblyscript@0.21.4/dist/transform.js",
+    "as-string-sink/assembly": "https://cdn.jsdelivr.net/npm/as-string-sink@0.5.3/assembly/+esm",
+    "as-bignum": "https://cdn.jsdelivr.net/npm/as-bignum@0.2.31/+esm",
+    "as-bignum/assembly": "https://cdn.jsdelivr.net/npm/as-bignum@0.2.31/assembly/index.ts"
   }
 }
 </script>
@@ -132,6 +143,10 @@ label {
                 <div id="split-12">
                   <label for="wasmfile">Choose a wasm file:</label>
                   <input type="file" id="wasmfile" name="wasmfile" accept="application/wasm">
+                  <div>
+                    <a style="color: #1a7198;" id="downloadLink" src="" target="_blank"></a>
+                  </div>
+                  <textarea style="width: 300px; height: 200px;font-size: 16px;margin-top: 10px;" id="abitext"></textarea>
                 </div>
               </div>
 
@@ -139,8 +154,15 @@ label {
           </div>
         </div>
         <div class="split content" id="split-02">
-          <button id="compile" >&gt;</button>
-          <div id="play"></div>
+          <div class="split">
+            <div id="split-21">
+              <button id="compile" >&gt;</button>
+              <div id="play"></div>
+            </div>
+            <div id="split-22">
+              <div id="errorMessages" style="color: #932424;"></div>
+            </div>
+          </div>
         </div>
     <script>
       Split(['#split-01', '#split-02'], {
@@ -157,6 +179,10 @@ label {
         snapOffset: 10,
       });
 
+      Split(["#split-21", "#split-22"],{
+        snapOffset: 10,
+      });
+
       const module = {};
 
     </script>
@@ -166,26 +192,20 @@ label {
   import asc from "assemblyscript/asc";
 
   import {basicSetup, EditorView} from "codemirror"
+  import Transformer from "./transformer.js"
+  import JsonTransformer from "json-as/transform"
   //import {javascript} from "@codemirror/lang-javascript"
   //import {EditorView} from "@codemirror/view"
-
-  //import "wabt";
-  //import {wabt} from 'https://cdn.jsdelivr.net/gh/AssemblyScript/wabt.js@1.0.32/index.js';
-  //console.log(WabtModule)
 
   var wout;
   var wabti = WabtModule();
   var wabt = null;
-
-  var worker = new Worker(
-    './worker.js',
-    // { type: "module" }
-  );
+  var worker = createWorker('./wat2wasm_worker.js', { type: "module" })
 
   wabti.then((x)=>{wabt = x;})
 
   function doit(act){
-console.log('doit', act, wout)
+    // console.log('doit', act, wout)
     let els = document.querySelectorAll("."+act+"_")
     let outp = document.querySelector("."+act+"_o")
     let ins =[]
@@ -206,141 +226,19 @@ console.log('doit', act, wout)
 
 
   function compileWasm(code1) {
-    const module = wabt.parseWat('unnamed.wat', code1, {multi_memory: true});
-    module.resolveNames();
-    module.validate();
-    const binary = module.toBinary({log: true, write_debug_names:true});
-    const {WebAssembly} = window;
-    const wasm = new WebAssembly.Module(binary.buffer);
-    const fxgen = function(argum){
-      return ()=>{
-        console.log(argum);
-      }
-    }
-    const importObject = {
-    //  imports: {
-    env: {
-        abort: fxgen("env.abort"),
-        db_read: fxgen("env.abort"),
-        db_write: fxgen("env.abort"),
-        db_remove: fxgen("env.abort"),
-        addr_validate: fxgen("env.abort"),
-        addr_canonicalize: fxgen("env.abort"),
-        addr_humanize: fxgen("env.abort"),
-        secp256k1_verify: fxgen("env.abort"),
-        secp256k1_recover_pubkey: fxgen("env.abort"),
-        ed25519_verify: fxgen("env.abort"),
-        ed25519_batch_verify: fxgen("env.abort"),
-        debug: fxgen("env.abort"),
-        query_chain: fxgen("env.abort"),
-        db_scan: fxgen("env.abort"),
-        db_next: fxgen("env.abort"),
-
-        ethereum_useGas: fxgen("ethereum.useGas"),
-        ethereum_getAddress: fxgen("ethereum.getAddress"),
-        ethereum_getExternalBalance: fxgen("ethereum.getExternalBalance"),
-        ethereum_getBlockHash: fxgen("ethereum.getBlockHash"),
-        ethereum_call: fxgen("ethereum.call"),
-        ethereum_callDataCopy: fxgen("ethereum.callDataCopy"),
-        ethereum_getCallDataSize: fxgen("ethereum.getCallDataSize"), 
-        ethereum_getCodeSize: fxgen("ethereum.getCodeSize"),
-        ethereum_callDataLoad: fxgen("ethereum.callDataLoad"),
-        ethereum_callCode: fxgen("ethereum.callCode"),
-        ethereum_callDelegate: fxgen("ethereum.callDelegate"),
-        ethereum_callStatic: fxgen("ethereum.callStatic"),
-        ethereum_storageStore: fxgen("ethereum.storageStore"),
-        ethereum_storageLoad: fxgen("ethereum.storageLoad"),
-        ethereum_getCaller: fxgen("ethereum.getCaller"),
-        ethereum_getCallValue: fxgen("ethereum.getCallValue"),
-        ethereum_codeCopy: fxgen("ethereum.codeCopy"),
-        ethereum_getBlockCoinbase: fxgen("ethereum.getBlockCoinbase"),
-        ethereum_create: fxgen("ethereum.create"),
-        ethereum_getBlockDifficulty: fxgen("ethereum.getBlockDifficulty"),
-        ethereum_externalCodeCopy: fxgen("ethereum.externalCodeCopy"),
-        ethereum_getExternalCodeSize: fxgen("ethereum.getExternalCodeSize"),
-        ethereum_getGasLeft: fxgen("ethereum.getGasLeft"),
-        ethereum_getBlockGasLimit: fxgen("ethereum.getBlockGasLimit"),
-        ethereum_getTxGasPrice: fxgen("ethereum.getTxGasPrice"),
-        ethereum_log: fxgen("ethereum.log"),
-        ethereum_getBlockNumber: fxgen("ethereum.getBlockNumber"),
-        ethereum_getTxOrigin: fxgen("ethereum.getTxOrigin"),
-        ethereum_finish: fxgen("ethereum.finish"),
-        ethereum_revert: fxgen("ethereum.revert"),
-        ethereum_getReturnDataSize: fxgen("ethereum.getReturnDataSize"),
-        ethereum_returnDataCopy: fxgen("ethereum.returnDataCopy"),
-        ethereum_selfDestruct: fxgen("ethereum.selfDestruct"),
-        ethereum_getBlockTimestamp: fxgen("ethereum.getBlockTimestamp"),
-      
-    },
-      // ethereum: { 
-      //   useGas: fxgen("ethereum.useGas"),
-      //   getAddress: fxgen("ethereum.getAddress"),
-      //   getExternalBalance: fxgen("ethereum.getExternalBalance"),
-      //   getBlockHash: fxgen("ethereum.getBlockHash"),
-      //   call: fxgen("ethereum.call"),
-      //   callDataCopy: fxgen("ethereum.callDataCopy"),
-      //   getCallDataSize: fxgen("ethereum.getCallDataSize"),
-      //   callDataLoad: fxgen("ethereum.callDataLoad"),
-      //   callCode: fxgen("ethereum.callCode"),
-      //   callDelegate: fxgen("ethereum.callDelegate"),
-      //   callStatic: fxgen("ethereum.callStatic"),
-      //   storageStore: fxgen("ethereum.storageStore"),
-      //   storageLoad: fxgen("ethereum.storageLoad"),
-      //   getCaller: fxgen("ethereum.getCaller"),
-      //   getCallValue: fxgen("ethereum.getCallValue"),
-      //   codeCopy: fxgen("ethereum.codeCopy"),
-      //   getBlockCoinbase: fxgen("ethereum.getBlockCoinbase"),
-      //   create: fxgen("ethereum.create"),
-      //   getBlockDifficulty: fxgen("ethereum.getBlockDifficulty"),
-      //   externalCodeCopy: fxgen("ethereum.externalCodeCopy"),
-      //   getExternalCodeSize: fxgen("ethereum.getExternalCodeSize"),
-      //   getGasLeft: fxgen("ethereum.getGasLeft"),
-      //   getBlockGasLimit: fxgen("ethereum.getBlockGasLimit"),
-      //   getTxGasPrice: fxgen("ethereum.getTxGasPrice"),
-      //   log: fxgen("ethereum.log"),
-      //   getBlockNumber: fxgen("ethereum.getBlockNumber"),
-      //   getTxOrigin: fxgen("ethereum.getTxOrigin"),
-      //   finish: fxgen("ethereum.finish"),
-      //   revert: fxgen("ethereum.revert"),
-      //   getReturnDataSize: fxgen("ethereum.getReturnDataSize"),
-      //   returnDataCopy: fxgen("ethereum.returnDataCopy"),
-      //   selfDestruct: fxgen("ethereum.selfDestruct"),
-      //   getBlockTimestamp: fxgen("ethereum.getBlockTimestamp")
-      // }
-    //}
+    worker.postMessage({type: 'compile', inputs: [code1]});
   }
 
-    const instance = new WebAssembly.Instance(wasm, importObject);
-    console.log(binary,binary.buffer.length);
-    return instance.exports;
-  }
-
-  async function blobToWasm(wfile) {
-    const buf = await wfile.arrayBuffer()
-    const {WebAssembly} = window;
-    const wasm = new WebAssembly.Module(buf);
-    const instance = new WebAssembly.Instance(wasm, {});
-    console.log(instance);
-    return instance.exports;
-  }
-
-  function interfaceFromWasm (_wout) {
+  function interfaceFromWasm (hout) {
     let play = document.getElementById("play")
-    let hout="";
-    for (let item in _wout){
-      if (item !="memory") {
-        let inps = Array(_wout[item].length).fill("<input onchange=\"module.doit('"+item+"')\" class=\""+item+"_\"></input>")
-        hout = hout + " <button onclick=\"module.doit('"+item+"')\">"+ item+"</button>("+ inps.join(", ")+ (") = <input class=\""+item+"_o\"></input>")+"<br>";
-      }
-    }
     play.innerHTML = hout;
   }
 
   var code = ""
   var btn = document.getElementById("compile")
   btn.addEventListener("click",()=>{
-    wout = compileWasm(editor2.doc.getValue())
-    interfaceFromWasm(wout);
+    compileWasm(editor2.doc.getValue())
+    worker.postMessage({type: 'getInterface', inputs: []});
   })
 
 
@@ -416,26 +314,60 @@ function editorOnChange(editor) {
 
 editorOnChange(editor);
 
+
+
   async function update(){
     const files = {
-      "index.ts": value
+      "index.ts": value,
       //"export function add(a: i32, b: i32): i32 {\n            return a + b;\n          }"
-
+      "wasmx.ts": `
+export declare function getCallData(): ArrayBuffer
+export declare function storageStore(key: ArrayBuffer, value: ArrayBuffer): void
+export declare function storageLoad(key: ArrayBuffer): ArrayBuffer
+export declare function storageStoreGlobal(key: ArrayBuffer, value: ArrayBuffer): void
+export declare function storageLoadGlobal(key: ArrayBuffer): ArrayBuffer
+export declare function log(value: ArrayBuffer): void
+export declare function finish(value: ArrayBuffer): void
+export declare function revert(message: ArrayBuffer): void
+      `,
     };
+
+    const jsonAsFiles = [
+      "node_modules/json-as/assembly.ts",
+      "node_modules/json-as/node_modules/as-string-sink/assembly.ts",
+      // "node_modules/json-as/node_modules/as-bignum/assembly.ts",
+    ]
+
+    for (let url of jsonAsFiles) {
+      const response = await fetch(url);
+      const text = await response.text();
+      files[url] = text;
+    }
 
     let out1 = await asc.main([
       "index.ts", "--textFile", "--optimize"
     ], {
-      readFile(name, baseDir) {
-        if (Object.prototype.hasOwnProperty.call(files, name)) return files[name];
+      async readFile(name, baseDir) {
+        if (Object.prototype.hasOwnProperty.call(files, name)) {
+          return files[name];
+        }
+        try {
+          const fileBuf = await fetch(name);
+          const response = await fileBuf.text();
+          return response;
+        } catch(e) {
+          console.log(e);
+        }
         return null;
       },
       writeFile(name, data, baseDir) {
       },
       listFiles(dirname, baseDir) {
         return [];
-      }
+      },
+      transforms: [JsonTransformer, Transformer],
     });
+    // console.log("out1", out1)
 
     error = out1.error
     stdout = out1.stdout;
@@ -444,8 +376,11 @@ editorOnChange(editor);
     //out.innerHTML = stdout.toString();
     code = stdout.toString();
     editor2.doc.setValue(code)
-    compileWasm(code)
-    console.log(error, code);
+    console.log(error, out1.stderr.toString(), code.length);
+    document.getElementById("errorMessages").innerText = out1.stderr.toString();
+    const elem2 = document.getElementById("abitext");
+    elem2.value = JSON.stringify(window.WasmxAbi);
+    // compileWasm(code)
   }
   update()
   // export { update }
@@ -456,7 +391,7 @@ editorOnChange(editor);
       return;
     }
     const wfile = files[0];
-    console.log('wfile', wfile)
+    // console.log('wfile', wfile)
     wout = null;
 
     worker.postMessage({type: 'instantiate', inputs: [wfile]});
@@ -464,17 +399,67 @@ editorOnChange(editor);
 
   worker.addEventListener('message', function (e) {
     const {output, type, method} = e.data;
-    console.log('worker sent output', output);
+    // console.log('worker sent output', output);
+    if (type === 'compile') {
+      console.log('compiled', output);
+      document.getElementById("errorMessages").innerText = output.errMessage;
+      const url = binaryBufferToUrl(output.binaryBuffer);
+      const elem = document.getElementById("downloadLink");
+      elem.innerText = url;
+      elem.href = url;
+      elem.download = "release.wasm";
+      elem.textContent = "DOWNLOAD " + "release.wasm";
 
+    }
     if (type === 'instantiate') {
-      let play = document.getElementById("play")
-      play.innerHTML = output;
+      // let play = document.getElementById("play")
+      // play.innerHTML = output;
     }
     else if (type === 'execute') {
       let outp = document.querySelector("."+method+"_o")
       outp.value = output
     }
+    else if (type === 'getInterface') {
+      // interfaceFromWasm(output);
+    }
   });
+
+function binaryBufferToUrl(binaryBuffer) {
+  const blob = new Blob([binaryBuffer]);
+  const objurl = URL.createObjectURL(blob);
+  return objurl;
+}
+
+function createWorker (workerUrl, options = {}) {
+	var worker = null;
+	try {
+		worker = new Worker(workerUrl, options);
+	} catch (e) {
+        console.log('createWorker e', e);
+		try {
+			var blob;
+			try {
+				blob = new Blob(["importScripts('" + workerUrl + "');"], { "type": 'application/javascript' });
+			} catch (e1) {
+                console.log('createWorker e1', e1);
+				var blobBuilder = new (window.BlobBuilder || window.WebKitBlobBuilder || window.MozBlobBuilder)();
+				blobBuilder.append("importScripts('" + workerUrl + "');");
+				blob = blobBuilder.getBlob('application/javascript');
+			}
+			var url = window.URL || window.webkitURL;
+			var blobUrl = url.createObjectURL(blob);
+            console.log('createWorker blobUrl', blobUrl);
+			worker = new Worker(blobUrl, options);
+		} catch (e2) {
+			//if it still fails, there is nothing much we can do
+            console.error('createWorker e2', e2);
+            return;
+		}
+	}
+    console.info("Worker created for ", workerUrl);
+	return worker;
+}
+
 
   </script>
   </body>
