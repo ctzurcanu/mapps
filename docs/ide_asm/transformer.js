@@ -5,7 +5,6 @@
 import { BaseVisitor } from "visitor-as";
 import { toString, getName, getTypeName, isStdlib } from "visitor-as/utils";
 import { Transform } from "assemblyscript/transform";
-
 class EventInput {
 }
 class EventData {
@@ -234,8 +233,15 @@ export default class Transformer extends Transform {
             }
             unknowns = currentUnknowns;
         }
-        console.log('-unknownTypes-', unknowns);
-        console.log('-abi-', JSON.stringify(transformer2.items));
+        const abi = JSON.stringify(transformer2.items);
+        if (typeof window !== 'undefined') {
+            // @ts-ignore
+            window.WasmxAbi = JSON.parse(abi);
+        }
+        if (typeof globalThis !== 'undefined') {
+            // @ts-ignore
+            globalThis.WasmxAbi = JSON.parse(abi);
+        }
     }
 }
 ;
