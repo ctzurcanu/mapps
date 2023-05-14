@@ -154,8 +154,15 @@ label {
           </div>
         </div>
         <div class="split content" id="split-02">
-          <button id="compile" >&gt;</button>
-          <div id="play"></div>
+          <div class="split">
+            <div id="split-21">
+              <button id="compile" >&gt;</button>
+              <div id="play"></div>
+            </div>
+            <div id="split-22">
+              <div id="errorMessages" style="color: #932424;"></div>
+            </div>
+          </div>
         </div>
     <script>
       Split(['#split-01', '#split-02'], {
@@ -169,6 +176,10 @@ label {
       });
 
       Split(["#split-11", "#split-12"],{
+        snapOffset: 10,
+      });
+
+      Split(["#split-21", "#split-22"],{
         snapOffset: 10,
       });
 
@@ -366,6 +377,7 @@ export declare function revert(message: ArrayBuffer): void
     code = stdout.toString();
     editor2.doc.setValue(code)
     console.log(error, out1.stderr.toString(), code.length);
+    document.getElementById("errorMessages").innerText = out1.stderr.toString();
     const elem2 = document.getElementById("abitext");
     elem2.value = JSON.stringify(window.WasmxAbi);
     // compileWasm(code)
@@ -390,8 +402,8 @@ export declare function revert(message: ArrayBuffer): void
     // console.log('worker sent output', output);
     if (type === 'compile') {
       console.log('compiled', output);
+      document.getElementById("errorMessages").innerText = output.errMessage;
       const url = binaryBufferToUrl(output.binaryBuffer);
-      console.log("downloadLink", url);
       const elem = document.getElementById("downloadLink");
       elem.innerText = url;
       elem.href = url;

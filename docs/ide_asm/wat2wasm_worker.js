@@ -212,12 +212,14 @@ var wout;
 var wasmInstance;
 function compileWat2Wasm(watSource) {
     const response = wat2wasm('unnamed.wat', watSource, {multi_memory: true});
-    console.log('--compileWat2Wasm response', response)
-    const wasm = new WebAssembly.Module(response.binaryBuffer);
-    wasmInstance = new WebAssembly.Instance(wasm, importObject);
-    console.log("compileWasm", wasmInstance);
-    self.wasmInstance = wasmInstance;
-    wout = wasmInstance.exports;
+    if (response.binaryBuffer) {
+        const wasm = new WebAssembly.Module(response.binaryBuffer);
+        wasmInstance = new WebAssembly.Instance(wasm, importObject);
+        self.wasmInstance = wasmInstance;
+        wout = wasmInstance.exports;
+    } else {
+        wasmInstance = null;
+    }
     return {...response, instance: wasmInstance};
   }
 
