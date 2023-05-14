@@ -42,6 +42,11 @@
 }
 </script>
 <script src="https://unpkg.com/split.js/dist/split.min.js"></script>
+
+<!-- ES Module Shims: Import maps polyfill for modules browsers without import maps support (all except Chrome 89+) -->
+<script defer src="https://ga.jspm.io/npm:es-module-shims@1.7.2/dist/es-module-shims.js" crossorigin="anonymous"></script>
+
+
 <style>
 html, body, .split, #out {
   width: 100%;
@@ -247,7 +252,7 @@ function ab2arr<T>(ab: ArrayBuffer): Array<T> {
               <button id="compile" >&gt;</button>
               <div id="play"></div>
             </div>
-            <div id="split-22">
+            <div id="split-22" style="overflow-y: auto;">
               <div id="errorMessages" style="color: #932424;"></div>
             </div>
           </div>
@@ -285,12 +290,13 @@ function ab2arr<T>(ab: ArrayBuffer): Array<T> {
   //import {javascript} from "@codemirror/lang-javascript"
   //import {EditorView} from "@codemirror/view"
 
-  var wout;
-  var wabti = WabtModule();
-  var wabt = null;
-  var worker = createWorker('./wat2wasm_worker.js', { type: "module" })
+  var asWorker = createWorker('./as_worker_wrap.js', {name: "as_worker_wrap" });
 
-  wabti.then((x)=>{wabt = x;})
+
+  var wout;
+  var worker = createWorker('./wat2wasm_worker.js', {
+    // type: "module"
+  })
 
   function doit(act){
     // console.log('doit', act, wout)
@@ -312,6 +318,9 @@ function ab2arr<T>(ab: ArrayBuffer): Array<T> {
   }
   module.doit = doit
 
+  function compileAs(code) {
+    asWorker.postMessage({type: 'compile', inputs: [code]});
+  }
 
   function compileWasm(code1) {
     worker.postMessage({type: 'compile', inputs: [code1]});
@@ -387,11 +396,7 @@ function ab2arr<T>(ab: ArrayBuffer): Array<T> {
 function editorOnChange(editor) {
   const text = editor.doc.getValue();
   let out = document.getElementById("out")
-  //let addWASM = asc.compileString(addSource, { optimizeLevel: 3 })
-  value = text;
-  update()
-  //out.innerHTML = text;
-  // console.log(text);
+  compileAs(text)
 }
 
         //editor.setOption("theme", "darcula");
@@ -402,76 +407,13 @@ function editorOnChange(editor) {
 
 editorOnChange(editor);
 
-
-
-  async function update(){
-    const files = {
-      "index.ts": value,
-      //"export function add(a: i32, b: i32): i32 {\n            return a + b;\n          }"
-      "wasmx.ts": `
-export declare function getCallData(): ArrayBuffer
-export declare function storageStore(key: ArrayBuffer, value: ArrayBuffer): void
-export declare function storageLoad(key: ArrayBuffer): ArrayBuffer
-export declare function storageStoreGlobal(key: ArrayBuffer, value: ArrayBuffer): void
-export declare function storageLoadGlobal(key: ArrayBuffer): ArrayBuffer
-export declare function log(value: ArrayBuffer): void
-export declare function finish(value: ArrayBuffer): void
-export declare function revert(message: ArrayBuffer): void
-      `,
-    };
-
-    const jsonAsFiles = [
-      "node_modules/json-as/assembly.ts",
-      "node_modules/json-as/node_modules/as-string-sink/assembly.ts",
-      // "node_modules/json-as/node_modules/as-bignum/assembly.ts",
-    ]
-
-    for (let url of jsonAsFiles) {
-      const response = await fetch(url);
-      const text = await response.text();
-      files[url] = text;
-    }
-
-    let out1 = await asc.main([
-      "index.ts", "--textFile", "--optimize"
-    ], {
-      async readFile(name, baseDir) {
-        if (Object.prototype.hasOwnProperty.call(files, name)) {
-          return files[name];
-        }
-        try {
-          const fileBuf = await fetch(name);
-          const response = await fileBuf.text();
-          return response;
-        } catch(e) {
-          console.log(e);
-        }
-        return null;
-      },
-      writeFile(name, data, baseDir) {
-      },
-      listFiles(dirname, baseDir) {
-        return [];
-      },
-      transforms: [JsonTransformer, Transformer],
-    });
-    // console.log("out1", out1)
-
-    error = out1.error
-    stdout = out1.stdout;
-
-    //let addWASM = asc.compileString(addSource, { optimizeLevel: 3 })
-    //out.innerHTML = stdout.toString();
-    code = stdout.toString();
+  async function updateAs(code, abi, err) {
     editor2.doc.setValue(code)
-    console.log(error, out1.stderr.toString(), code.length);
-    document.getElementById("errorMessages").innerText = out1.stderr.toString();
+    document.getElementById("errorMessages").innerText = err;
     const elem2 = document.getElementById("abitext");
-    elem2.value = JSON.stringify(window.WasmxAbi);
-    // compileWasm(code)
+    elem2.value = JSON.stringify(abi);
   }
-  update()
-  // export { update }
+
 
   document.getElementById('wasmfile').addEventListener('change', async (ev) => {
     const files = document.getElementById('wasmfile').files;
@@ -485,11 +427,21 @@ export declare function revert(message: ArrayBuffer): void
     worker.postMessage({type: 'instantiate', inputs: [wfile]});
   });
 
+  asWorker.addEventListener('message', function (e) {
+    const {output, type, method} = e.data;
+    // console.log('worker sent output', output);
+    if (type === 'init') {
+      compileAs(document.getElementById("code").innerText);
+    }
+    else if (type === 'compile') {
+      updateAs(output.code, output.abi, output.errMessage);
+    }
+  });
+
   worker.addEventListener('message', function (e) {
     const {output, type, method} = e.data;
     // console.log('worker sent output', output);
     if (type === 'compile') {
-      console.log('compiled', output);
       document.getElementById("errorMessages").innerText = output.errMessage;
       const url = binaryBufferToUrl(output.binaryBuffer);
       const elem = document.getElementById("downloadLink");
